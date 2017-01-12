@@ -34,9 +34,9 @@ Others can be added easily, but would cause more trouble than it's worth:
 Performance
 -----------
 
-The reference Python implementation is 225 times slower than the host language, after optimizations. The Java implementation proved harder to benchmark, as a long-running interpreter runs progressively faster. That said, it seems to be roughly 40 times slower than pure Java on a fresh start, and gets to within 40%-60% of a compiled Java program -- almost as if the interpreter wasn't in the way anymore!
+The reference Python implementation is 225 times slower than the host language, after optimizations. The Java implementation proved harder to benchmark, as a long-running interpreter runs progressively faster. That said, it seems to be roughly 40 times slower than pure Java on a fresh start, and gets to within 40%-60% of a compiled Java program -- almost as if the interpreter wasn't in the way anymore! Last but not least, the Go implementation is 160 times slower than native code, which makes it 4 times slower than the Java version after JIT optimization.
 
-Incidentally, Python itself appears to be twice as fast as Java for simple looping and arithmetic. But Java is much better suited for interpreting another language.
+Incidentally, Python itself appears to be twice as fast as Java for simple looping and arithmetic. But Java is much better suited for interpreting another language. Or at least this interpreter architecture happens to suit Java unusually well.
 
 I took advantage of the extra performance to make the Java interpreter extensible. That slowed it down again a little, but I think it's worth it.
 
@@ -52,3 +52,14 @@ Expression syntax
 	math_expr ::= term (("+"|"-") term)*
 	term ::= factor (("*" | "/") factor)*
 	factor ::= ("+"|"-")? (number | identifier | "(" disjunction ")")
+
+Roadmap
+-------
+
+The next version will add power and flooring division operators, along with more useful functions, but will remove DEF FN. The latter is for several reasons:
+
+- it's slow and ugly to implement;
+- it prevents an obvious optimization, slowing down the whole interpreter;
+- it complicates the implementation of built-in functions as well.
+
+Briefly, user-defined functions create more problems than they solve, and go against the stated goals of Tinycat BASIC.
