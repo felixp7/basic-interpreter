@@ -2,7 +2,7 @@ Tinycat BASIC
 =============
 
 
-Tinycat BASIC is a line-number BASIC dialect that can be implemented in less than a thousand lines of Java or C++ (barring extensions to the core). It achieves that by relying on direct interpretation and having no type system. Its name is meant to honor the classic dialect Tiny BASIC as inspiration and ancestry.
+Tinycat BASIC is a line-number BASIC dialect that can be implemented in less than a thousand lines of Java or Go (barring extensions to the core). It achieves that by relying on direct interpretation and having no type system. Its name is meant to honor the classic dialect Tiny BASIC as inspiration and ancestry.
 
 Rationale
 ---------
@@ -77,7 +77,7 @@ Supported commands
 
 Commands are only available at the built-in command prompt. It is assumed that a program embedding the interpreter will provide its own alternatives.
 
-The BYE command leaves the command loop and returns to the host application (which simply closes a stand-alone interpreter). In the Go edition you can also press Ctrl-D to send an end-of-file character; the other two will throw an exception if you try.
+The BYE command leaves the command loop and returns to the host application (which simply closes a stand-alone interpreter). You can also press Ctrl-D to send an end-of-file character.
 
 Supported statements
 --------------------
