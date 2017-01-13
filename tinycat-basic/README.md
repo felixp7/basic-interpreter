@@ -96,6 +96,28 @@ Supported statements
 	
 **) Note: absent in the Go edition.
 
+Built-in functions
+------------------
+
+	TIMER()
+	RND()
+	PI()
+	INT(n)
+	ABS(n)
+	SQR(n)
+	SIN(n)
+	COS(n)
+	RAD(n)
+	DEG(n)
+	MIN(a, b)
+	MAX(a, b)
+	MOD(a, b)
+	HYPOT2(a, b)
+	HYPOT3(a, b, c)
+	IIF(a, b, c)
+	
+Beware that the IIF function doesn't short-circuit (and neither do the logical operators).
+
 Expression syntax
 -----------------
 
