@@ -45,10 +45,13 @@ I took advantage of the extra performance to make the Java interpreter extensibl
 Embedding Tinycat BASIC
 -----------------------
 
-All three editions of the interpreter can be embedded, with a couple of caveats:
+All three editions of the interpreter can be embedded, with some caveats:
 
 - the Python edition will only have one shared context;
-- only the Java edition has independent per-context random number generators.
+- only the Java edition has independent per-context random number generators;
+- the Go edition has a (trivial) `main()` function that must be replaced.
+
+Both the Go and Java interpreters support I/O redirection, but only the latter does it per-context.
 
 Extending Tinycat BASIC
 -----------------------
@@ -73,6 +76,8 @@ Supported commands
 	BYE
 
 Commands are only available at the built-in command prompt. It is assumed that a program embedding the interpreter will provide its own alternatives.
+
+The BYE command leaves the command loop and returns to the host application (which simply closes a stand-alone interpreter). In the Go edition you can also press Ctrl-D to send an end-of-file character; the other two will throw an exception if you try.
 
 Supported statements
 --------------------
