@@ -18,9 +18,10 @@ Tinycat BASIC has a number of useful additions on top of its model:
 - arbitrary variable names;
 - control structures like DO ... LOOP and FOR ... NEXT;
 - the logical operators: AND, OR, NOT;
-- functions, both built-in and user-defined;
-- random number generation;
-- a modulo function.
+- functions, both built-in and user-defined*;
+- random number generation.
+
+*) Note: the new Go implementation lacks DEF FN.
 
 Some features would *not* be trivial to add, and therefore outside the scope of this project:
 
@@ -56,10 +57,4 @@ Expression syntax
 Roadmap
 -------
 
-The next version will add power and flooring division operators, along with more useful functions, but will remove DEF FN. The latter is for several reasons:
-
-- it's slow and ugly to implement;
-- it prevents an obvious optimization, slowing down the whole interpreter;
-- it complicates the implementation of built-in functions as well.
-
-Briefly, user-defined functions create more problems than they solve, and go against the stated goals of Tinycat BASIC.
+The next version will add power and flooring division operators.
