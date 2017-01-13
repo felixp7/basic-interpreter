@@ -42,6 +42,14 @@ Incidentally, Python itself appears to be twice as fast as Java for simple loopi
 
 I took advantage of the extra performance to make the Java interpreter extensible. That slowed it down again a little, but I think it's worth it.
 
+Embedding Tinycat BASIC
+-----------------------
+
+All three editions of the interpreter can be embedded, with a couple of caveats:
+
+- the Python edition will only have one shared context;
+- only the Java edition has independent per-context random number generators.
+
 Extending Tinycat BASIC
 -----------------------
 
@@ -50,6 +58,21 @@ The Java implementation is fully extensible: by subclassing the interpreter, you
 In the Go implementation, you can only add more built-in functions without changing the source code.
 
 The Python implementation isn't extensible at this time.
+
+Supported commands
+------------------
+
+	LIST
+	RUN
+	CONTINUE
+	CLEAR
+	NEW
+	DELETE line-number
+	LOAD "filename"
+	SAVE "filename"
+	BYE
+
+Commands are only available at the built-in command prompt. It is assumed that a program embedding the interpreter will provide its own alternatives.
 
 Supported statements
 --------------------
@@ -88,8 +111,3 @@ Expression syntax
 	factor ::= ("+"|"-")? (number | name | funcall | "(" expression ")")
 	funcall ::= name ("(" expr_list? ")")?
 	expr_list ::= expression ("," expression)*
-
-Roadmap
--------
-
-The next version will make all three editions embeddable.
