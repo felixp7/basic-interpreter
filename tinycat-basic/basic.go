@@ -848,58 +848,53 @@ func (ctx *Context) SaveFile(fn string) error {
 	return nil
 }
 
-func List(prg Program) {
-	for _, i := range prg.LineNumbers() {
-		fmt.Printf("%d\t%s\n", i, prg[i])
-	}
-}
-
-func main() {
-	basic := Context{Variables: make(Variables), Program: make(Program)}
-	fmt.Println("Tinycat BASIC v0.9 READY");
+func (ctx *Context) CommandLoop(banner string) {
+	fmt.Println(banner);
 	fmt.Print("> ")
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
-		basic.Line = scanner.Text()
-		basic.Cursor = 0
+		ctx.Line = scanner.Text()
+		ctx.Cursor = 0
 		var err error
 		
-		if hasDigitAt(basic.Line, 0) {
-			err = basic.ParseLine()
-		} else if !basic.MatchKeyword() {
+		if hasDigitAt(ctx.Line, 0) {
+			err = ctx.ParseLine()
+		} else if !ctx.MatchKeyword() {
 			err = errors.New("Command expected")
-		} else if basic.Token == "bye" {
+		} else if ctx.Token == "bye" {
 			break
-		} else if basic.Token == "list" {
-			List(basic.Program)
-		} else if basic.Token == "run" {
-			basic.RunProgram()
-		} else if basic.Token == "continue" {
-			basic.ContinueProgram()
-		} else if basic.Token == "clear" {
-			basic.Variables = make(Variables)
-		} else if basic.Token == "new" {
-			basic.Program = make(Program)
-		} else if basic.Token == "delete" {
-			if basic.MatchNumber() {
+		} else if ctx.Token == "list" {
+			for _, i := range ctx.Program.LineNumbers() {
+				fmt.Printf("%d\t%s\n", i, ctx.Program[i])
+			}
+		} else if ctx.Token == "run" {
+			ctx.RunProgram()
+		} else if ctx.Token == "continue" {
+			ctx.ContinueProgram()
+		} else if ctx.Token == "clear" {
+			ctx.Variables = make(Variables)
+		} else if ctx.Token == "new" {
+			ctx.Program = make(Program)
+		} else if ctx.Token == "delete" {
+			if ctx.MatchNumber() {
 				var ln int
-				_, err = fmt.Sscanf(basic.Token, "%d", &ln)
-				delete(basic.Program, ln)
+				_, err = fmt.Sscanf(ctx.Token, "%d", &ln)
+				delete(ctx.Program, ln)
 			} else {
 				err = errors.New("Line # expected")
 			}
-		} else if basic.Token == "load" {
-			if ok, err := basic.MatchedString(); ok {
-				err = basic.LoadFile(basic.Token)
+		} else if ctx.Token == "load" {
+			if ok, err := ctx.MatchedString(); ok {
+				err = ctx.LoadFile(ctx.Token)
 				if err == nil {
 					fmt.Println("File loaded")
 				}
 			} else if err == nil {
 				err = errors.New("String expected")
 			}
-		} else if basic.Token == "save" {
-			if ok, err := basic.MatchedString(); ok {
-				err = basic.SaveFile(basic.Token)
+		} else if ctx.Token == "save" {
+			if ok, err := ctx.MatchedString(); ok {
+				err = ctx.SaveFile(ctx.Token)
 				if err == nil {
 					fmt.Println("File saved")
 				}
@@ -907,7 +902,7 @@ func main() {
 				err = errors.New("String expected")
 			}
 		} else {
-			err = basic.DispatchStatement()
+			err = ctx.DispatchStatement()
 		}
 		if err != nil { fmt.Fprintln(os.Stderr, err) }
 		fmt.Print("> ")
@@ -915,4 +910,9 @@ func main() {
 	if err := scanner.Err(); err != nil {
 		fmt.Fprintln(os.Stderr, "Error on input: ", err)
 	}
+}
+
+func main() {
+	basic := Context{Variables: make(Variables), Program: make(Program)}
+	basic.CommandLoop("Tinycat BASIC v0.9b READY")
 }

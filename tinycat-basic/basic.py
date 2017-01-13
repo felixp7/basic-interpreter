@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+"""Embeddable line-number Basic interpreter in under 1000 lines of Python."""
+
 from __future__ import division
 from __future__ import print_function
 
@@ -616,31 +618,36 @@ statements = {
 	"rem": parse_rem
 }
 
-print("Tinycat BASIC v0.8 READY\n")
-done = False
-while not done:
-	line = input("> ")
-	cursor = 0
-	if match_nocase("bye"):
-		done = True
-	elif match_nocase("list"):
-		list_program()
-	elif match_nocase("run"):
-		run_program()
-	elif match_nocase("continue"):
-		continue_program()
-	elif match_nocase("clear"):
-		variables.clear()
-	elif match_nocase("new"):
-		program.clear()
-	elif match_nocase("delete"):
-		parse_delete()
-	elif match_nocase("save"):
-		save_program()
-	elif match_nocase("load"):
-		load_program()
-	else:
-		try:
-			parse_line()
-		except Exception as e:
-			print(e, "in column", cursor)
+def command_loop(banner):
+	global line, cursor
+	print(banner)
+	done = False
+	while not done:
+		line = input("> ")
+		cursor = 0
+		if match_nocase("bye"):
+			done = True
+		elif match_nocase("list"):
+			list_program()
+		elif match_nocase("run"):
+			run_program()
+		elif match_nocase("continue"):
+			continue_program()
+		elif match_nocase("clear"):
+			variables.clear()
+		elif match_nocase("new"):
+			program.clear()
+		elif match_nocase("delete"):
+			parse_delete()
+		elif match_nocase("save"):
+			save_program()
+		elif match_nocase("load"):
+			load_program()
+		else:
+			try:
+				parse_line()
+			except Exception as e:
+				print(e, "in column", cursor)
+
+if __name__ == "__main__":
+	command_loop("Tinycat BASIC v0.9 READY\n")

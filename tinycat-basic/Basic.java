@@ -807,6 +807,70 @@ public class Basic {
 		}
 	}
 	
+	public void command_loop(final String banner) {
+		output.println(banner);
+		boolean done = false;
+		while (!done) {
+			output.print("> ");
+			try {
+				line = input.readLine();
+			} catch (IOException e) {
+				error.println(e);
+				continue;
+			}
+			
+			cursor = 0;
+			
+			if (Character.isDigit(line.charAt(0))) {
+				parse_line();
+			} else if (!match_keyword()) {
+				System.err.print("Command expected");
+			} else if (token.equals("bye")) {
+				done = true;
+			} else if (token.equals("list")) {
+				list_program();
+			} else if (token.equals("run")) {
+				run_program();
+			} else if (token.equals("continue")) {
+				continue_program();
+			} else if (token.equals("clear")) {
+				variables.clear();
+			} else if (token.equals("new")) {
+				program.clear();
+			} else if (token.equals("delete")) {
+				if (match_number()) {
+					final int line_num = (int)
+						Double.parseDouble(token);
+					program.remove(line_num);
+				} else {
+					error.println("Line # expected");
+				}
+			} else if (token.equals("load")) {
+				if (match_string()) {
+					load_file(token);
+					output.println("File loaded");
+				} else {
+					error.println("String expected");
+				}
+			} else if (token.equals("save")) {
+				if (match_string()) {
+					save_file(token);
+					output.println("File saved");
+				} else {
+					error.println("String expected");
+				}
+			} else {
+				try {
+					dispatch_statement();
+				} catch (RuntimeException e) {
+					error.print(e);
+					error.print(" in column ");
+					error.println(cursor);
+				}
+			}
+		}
+	}
+	
 	public static void main(String[] args) {
 		Basic basic = new Basic();
 		
@@ -818,67 +882,6 @@ public class Basic {
 				return;
 		}
 		
-		System.out.println("Tinycat BASIC v1.0a READY");
-		boolean done = false;
-		while (!done) {
-			System.out.print("> ");
-			try {
-				basic.line = basic.input.readLine();
-			} catch (IOException e) {
-				System.err.println(e);
-				continue;
-			}
-			
-			basic.cursor = 0;
-			
-			if (Character.isDigit(basic.line.charAt(0))) {
-				basic.parse_line();
-			} else if (!basic.match_keyword()) {
-				System.err.print("Command expected");
-			} else if (basic.token.equals("bye")) {
-				done = true;
-			} else if (basic.token.equals("list")) {
-				basic.list_program();
-			} else if (basic.token.equals("run")) {
-				basic.run_program();
-			} else if (basic.token.equals("continue")) {
-				basic.continue_program();
-			} else if (basic.token.equals("clear")) {
-				basic.variables.clear();
-			} else if (basic.token.equals("new")) {
-				basic.program.clear();
-			} else if (basic.token.equals("delete")) {
-				if (basic.match_number()) {
-					final int line_num = (int)
-						Double.parseDouble(
-							basic.token);
-					basic.program.remove(line_num);
-				} else {
-					System.err.println("Line # expected");
-				}
-			} else if (basic.token.equals("load")) {
-				if (basic.match_string()) {
-					basic.load_file(basic.token);
-					System.out.println("File loaded");
-				} else {
-					System.err.println("String expected");
-				}
-			} else if (basic.token.equals("save")) {
-				if (basic.match_string()) {
-					basic.save_file(basic.token);
-					System.out.println("File saved");
-				} else {
-					System.err.println("String expected");
-				}
-			} else {
-				try {
-					basic.dispatch_statement();
-				} catch (RuntimeException e) {
-					System.err.print(e);
-					System.err.print(" in column ");
-					System.err.println(basic.cursor);
-				}
-			}
-		}
+		basic.command_loop("Tinycat BASIC v1.1 READY");
 	}
 }
