@@ -214,6 +214,9 @@ public class Basic {
 		} else if (match("/")) {
 			token = "/";
 			return true;
+		} else if (match("\\")) {
+			token = "\\";
+			return true;
 		} else {
 			return false;
 		}
@@ -568,19 +571,29 @@ public class Basic {
 	}
 	
 	public double parse_term() {
-		double t1 = parse_factor();
+		double t1 = parse_power();
 		while (match_mul_div()) {
 			final String op = token;
-			final double t2 = parse_factor();
+			final double t2 = parse_power();
 			if (op.equals("*"))
 				t1 *= t2;
 			else if (op.equals("/"))
 				t1 /= t2;
+			else if (op.equals("\\"))
+				t1 = Math.floor(t1 / t2);
 			else
 				throw new RuntimeException(
 					"Unknown operator: " + op);
 		}
 		return t1;
+	}
+	
+	public double parse_power() {
+		final double t1 = parse_factor();
+		if (match("^"))
+			return Math.pow(t1, parse_power());
+		else
+			return t1;
 	}
 	
 	public double parse_factor() {

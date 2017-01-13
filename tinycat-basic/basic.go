@@ -18,6 +18,15 @@ import (
 type Variables map[string]float64
 type Program map[int]string
 
+func (prg Program) LineNumbers() []int {
+	addr := make([]int, 0, len(prg))
+	for ln, _ := range prg {
+		addr = append(addr, ln)
+	}
+	sort.Ints(addr)
+	return addr
+}
+
 // Encapsulates all the state needed to interpret a Basic program.
 type Context struct {
 	Line string
@@ -537,22 +546,40 @@ func (ctx *Context) ParseArithmetic() (float64, error) {
 }
 
 func (ctx *Context) ParseTerm() (float64, error) {
-	t1, err := ctx.ParseFactor()
+	t1, err := ctx.ParsePower()
 	if err != nil { return 0, err }
 	for ctx.MatchMulDiv() {
 		op := ctx.Token
-		t2, err2 := ctx.ParseFactor()
+		t2, err2 := ctx.ParsePower()
 		if err2 != nil {
 			return 0, err2
 		} else if op == "*" {
 			t1 *= t2
 		} else if op == "/" {
 			t1 /= t2
+		} else if op == "\\" {
+			t1 = math.Floor(t1 / t2)
 		} else {
 			return 0, errors.New("Unknown operator: " + op);
 		}
 	}
 	return t1, nil
+}
+
+func (ctx *Context) ParsePower() (float64, error) {
+	t1, err := ctx.ParseFactor()
+	if err != nil {
+		return 0, err
+	} else if ctx.Match("^") {
+		t2, err := ctx.ParsePower()
+		if err != nil {
+			return 0, err
+		} else {
+			return math.Pow(t1, t2), nil
+		}
+	} else {
+		return t1, nil
+	}
 }
 
 func (ctx *Context) ParseFactor() (float64, error) {
@@ -597,7 +624,7 @@ func (ctx *Context) ParseFactor() (float64, error) {
 }
 
 func (ctx *Context) ParseArgs() ([]float64, error) {
-	args := make([]float64, 0, 3)
+	args := make([]float64, 0, 3) // The most arguments a built-in takes.
 	if (ctx.Match("(")) {
 		if (ctx.Match(")")) {
 			return args, nil
@@ -702,6 +729,9 @@ func (ctx *Context) MatchMulDiv() bool {
 	} else if ctx.Match("/") {
 		ctx.Token = "/"
 		return true
+	} else if ctx.Match("\\") {
+		ctx.Token = "\\"
+		return true
 	} else {
 		return false
 	}
@@ -769,7 +799,7 @@ func IndexOf(needle int, haystack []int) int {
 
 func (ctx *Context) RunProgram() error {
 	ctx.stack.Init()
-	ctx.addr = LineNumbers(ctx.Program)
+	ctx.addr = ctx.Program.LineNumbers()
 	ctx.crt_line = 0
 	return ctx.ContinueProgram()
 }
@@ -811,26 +841,17 @@ func (ctx *Context) SaveFile(fn string) error {
 	file, err := os.Open(fn)
 	if err != nil { return err }
 	defer file.Close()
-	for _, i := range LineNumbers(ctx.Program) {
+	for _, i := range ctx.Program.LineNumbers() {
 		_, err = fmt.Fprintf(os.Stdout, "%d\t%s\n", i, ctx.Program[i])
 		if (err != nil) { return err }
 	}
 	return nil
 }
 
-func ListProgram(prg Program) {
-	for _, i := range LineNumbers(prg) {
+func List(prg Program) {
+	for _, i := range prg.LineNumbers() {
 		fmt.Printf("%d\t%s\n", i, prg[i])
 	}
-}
-
-func LineNumbers(prg Program) []int {
-	addr := make([]int, 0, len(prg))
-	for ln, _ := range prg {
-		addr = append(addr, ln)
-	}
-	sort.Ints(addr)
-	return addr
 }
 
 func main() {
@@ -850,7 +871,7 @@ func main() {
 		} else if basic.Token == "bye" {
 			break
 		} else if basic.Token == "list" {
-			ListProgram(basic.Program)
+			List(basic.Program)
 		} else if basic.Token == "run" {
 			basic.RunProgram()
 		} else if basic.Token == "continue" {
