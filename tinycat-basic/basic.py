@@ -675,7 +675,10 @@ def command_loop(banner):
 	print(banner)
 	done = False
 	while not done:
-		line = input("> ")
+		try:
+			line = input("> ")
+		except EOFError:
+			break
 		cursor = 0
 		if match_nocase("bye"):
 			done = True

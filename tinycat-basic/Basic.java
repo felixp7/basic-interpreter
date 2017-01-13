@@ -814,6 +814,7 @@ public class Basic {
 			output.print("> ");
 			try {
 				line = input.readLine();
+				if (line == null) break;
 			} catch (IOException e) {
 				error.println(e);
 				continue;
