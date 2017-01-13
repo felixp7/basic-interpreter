@@ -254,6 +254,9 @@ func (ctx *Context) MatchedString() (bool, error) {
 		
 	mark := ctx.Cursor
 	ctx.Cursor++ // Skip the opening double quote.
+	if ctx.Cursor >= len(ctx.Line) {
+		return false, errors.New("Unclosed string")
+	}
 	for ctx.Line[ctx.Cursor] != '"' {
 		ctx.Cursor++
 		if ctx.Cursor >= len(ctx.Line) {
@@ -858,6 +861,7 @@ func (ctx *Context) CommandLoop(banner string) {
 	scanner := bufio.NewScanner(Ins)
 	for scanner.Scan() {
 		ctx.Line = scanner.Text()
+		if len(ctx.Line) == 0 { fmt.Fprint(Outs, "> "); continue }
 		ctx.Cursor = 0
 		var err error
 		
