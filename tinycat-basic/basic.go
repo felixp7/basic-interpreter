@@ -15,6 +15,10 @@ import (
 	"os"
 )
 
+var Ins = os.Stdin
+var Outs = os.Stdout
+var Errs = os.Stderr
+
 type Variables map[string]float64
 type Program map[int]string
 
@@ -211,7 +215,7 @@ func (ctx *Context) ParseGoto() error {
 
 func (ctx *Context) ParsePrint() error {
 	if ctx.MatchEol() {
-		fmt.Println()
+		fmt.Fprintln(Outs)
 		return nil
 	}
 	value, err := ctx.ParsePrintable()
@@ -222,9 +226,9 @@ func (ctx *Context) ParsePrint() error {
 		value += val
 	}
 	if ctx.Match(";") {
-		fmt.Print(value)
+		fmt.Fprint(Outs, value)
 	} else {
-		fmt.Println(value)
+		fmt.Fprintln(Outs, value)
 	}
 	return nil
 }
@@ -244,7 +248,7 @@ func (ctx *Context) ParsePrintable() (string, error) {
 func (ctx *Context) MatchedString() (bool, error) {
 	ctx.SkipWhitespace()
 
-	if (ctx.Cursor >= len(ctx.Line) || ctx.Line[ctx.Cursor] != '"') {
+	if ctx.Cursor >= len(ctx.Line) || ctx.Line[ctx.Cursor] != '"' {
 		return false, nil
 	}
 		
@@ -278,7 +282,7 @@ func (ctx *Context) ParseInput() error {
 	
 	input_vars, err := ctx.ParseVarlist()
 	if err != nil { return err }
-	fmt.Print(prompt)
+	fmt.Fprint(Outs, prompt)
 	var data []string
 	scanner := bufio.NewScanner(os.Stdin)
 	if scanner.Scan() {
@@ -814,9 +818,9 @@ func (ctx *Context) ContinueProgram() error {
 		ctx.Cursor = 0
 		err = ctx.ParseStatement()
 		if err != nil {
-			fmt.Fprint(os.Stderr, err);
-			fmt.Fprint(os.Stderr, " in line ", ctx.line_num);
-			fmt.Fprintln(os.Stderr, ", column ", ctx.Cursor);
+			fmt.Fprint(Errs, err);
+			fmt.Fprint(Errs, " in line ", ctx.line_num);
+			fmt.Fprintln(Errs, ", column ", ctx.Cursor);
 			break
 		}
 	}
@@ -842,16 +846,16 @@ func (ctx *Context) SaveFile(fn string) error {
 	if err != nil { return err }
 	defer file.Close()
 	for _, i := range ctx.Program.LineNumbers() {
-		_, err = fmt.Fprintf(os.Stdout, "%d\t%s\n", i, ctx.Program[i])
+		_, err = fmt.Fprintf(Outs, "%d\t%s\n", i, ctx.Program[i])
 		if (err != nil) { return err }
 	}
 	return nil
 }
 
 func (ctx *Context) CommandLoop(banner string) {
-	fmt.Println(banner);
-	fmt.Print("> ")
-	scanner := bufio.NewScanner(os.Stdin)
+	fmt.Fprintln(Outs, banner);
+	fmt.Fprint(Outs, "> ")
+	scanner := bufio.NewScanner(Ins)
 	for scanner.Scan() {
 		ctx.Line = scanner.Text()
 		ctx.Cursor = 0
@@ -865,7 +869,7 @@ func (ctx *Context) CommandLoop(banner string) {
 			break
 		} else if ctx.Token == "list" {
 			for _, i := range ctx.Program.LineNumbers() {
-				fmt.Printf("%d\t%s\n", i, ctx.Program[i])
+				fmt.Fprintf(Outs, "%d\t%s\n", i, ctx.Program[i])
 			}
 		} else if ctx.Token == "run" {
 			ctx.RunProgram()
@@ -887,7 +891,7 @@ func (ctx *Context) CommandLoop(banner string) {
 			if ok, err := ctx.MatchedString(); ok {
 				err = ctx.LoadFile(ctx.Token)
 				if err == nil {
-					fmt.Println("File loaded")
+					fmt.Fprintln(Outs, "File loaded")
 				}
 			} else if err == nil {
 				err = errors.New("String expected")
@@ -896,7 +900,7 @@ func (ctx *Context) CommandLoop(banner string) {
 			if ok, err := ctx.MatchedString(); ok {
 				err = ctx.SaveFile(ctx.Token)
 				if err == nil {
-					fmt.Println("File saved")
+					fmt.Fprintln(Outs, "File saved")
 				}
 			} else if err == nil {
 				err = errors.New("String expected")
@@ -904,11 +908,11 @@ func (ctx *Context) CommandLoop(banner string) {
 		} else {
 			err = ctx.DispatchStatement()
 		}
-		if err != nil { fmt.Fprintln(os.Stderr, err) }
-		fmt.Print("> ")
+		if err != nil { fmt.Fprintln(Errs, err) }
+		fmt.Fprint(Outs, "> ")
 	}
 	if err := scanner.Err(); err != nil {
-		fmt.Fprintln(os.Stderr, "Error on input: ", err)
+		fmt.Fprintln(Errs, "Error on input: ", err)
 	}
 }
 

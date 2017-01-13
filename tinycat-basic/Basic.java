@@ -824,7 +824,7 @@ public class Basic {
 			if (Character.isDigit(line.charAt(0))) {
 				parse_line();
 			} else if (!match_keyword()) {
-				System.err.print("Command expected");
+				error.println("Command expected");
 			} else if (token.equals("bye")) {
 				done = true;
 			} else if (token.equals("list")) {
