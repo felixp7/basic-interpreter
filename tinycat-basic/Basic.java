@@ -48,15 +48,26 @@ public class Basic {
 	public Random rng = new Random();
 
 	public Basic() {
-		final String args[] = {"n"};
+		String args[] = new String[0];
+		function_args.put("rnd", args);
+		function_args.put("timer", args);
+		function_args.put("pi", args);
+		args = new String[]{"n"};
 		function_args.put("int", args);
 		function_args.put("abs", args);
 		function_args.put("sqr", args);
 		function_args.put("sin", args);
 		function_args.put("cos", args);
-		function_args.put("rnd", new String[0]);
-		function_args.put("timer", new String[0]);
-		function_args.put("mod", new String[] {"a", "b"});
+		args = new String[]{"a", "b"};
+		function_args.put("rad", args);
+		function_args.put("deg", args);
+		function_args.put("min", args);
+		function_args.put("max", args);
+		function_args.put("mod", args);
+		function_args.put("hypot2", args);
+		args = new String[]{"a", "b", "c"};
+		function_args.put("hypot3", args);
+		function_args.put("iif", args);
 	}
 
 	public void skip_whitespace() {
@@ -435,7 +446,7 @@ public class Basic {
 			else
 				stack.pop();
 		} else if (match_nocase("until")) {
-			if (parse_expression() != 0)
+			if (parse_expression() == 0)
 				stack.pop();
 			else
 				crt_line = stack.getLast().intValue();
@@ -633,7 +644,14 @@ public class Basic {
 
 	/** Extension point: override in a subclass to add more functions. */
 	public double call_builtin(final String name, final Double[] args) {
-		if (name.equals("int"))
+		if (name.equals("timer"))
+			return Double.valueOf(
+				System.currentTimeMillis()) / 1000.0;
+		else if (name.equals("rnd"))
+			return rng.nextDouble();
+		else if (name.equals("pi"))
+			return Math.PI;
+		else if (name.equals("int"))
 			return args[0] >= 0 ?
 				Math.floor(args[0]) : Math.ceil(args[0]);
 		else if (name.equals("abs"))
@@ -644,13 +662,27 @@ public class Basic {
 			return Math.sin(args[0]);
 		else if (name.equals("cos"))
 			return Math.cos(args[0]);
-		else if (name.equals("timer"))
-			return Double.valueOf(
-				System.currentTimeMillis()) / 1000.0;
-		else if (name.equals("rnd"))
-			return rng.nextDouble();
+		else if (name.equals("rad"))
+			return args[0] * (Math.PI / 180);
+		else if (name.equals("deg"))
+			return args[0] * (180 / Math.PI);
+		else if (name.equals("min"))
+			return Math.min(args[0], args[1]);
+		else if (name.equals("max"))
+			return Math.max(args[0], args[1]);
 		else if (name.equals("mod"))
 			return args[0] % args[1];
+		else if (name.equals("hypot2"))
+			return Math.sqrt(
+				args[0] * args[0] +
+				args[1] * args[1]);
+		else if (name.equals("hypot3"))
+			return Math.sqrt(
+				args[0] * args[0] +
+				args[1] * args[1] +
+				args[2] * args[2]);
+		else if (name.equals("iif"))
+			return args[0] != 0 ? args[1] : args[2];
 		else
 			// Should never happen, but just in case
 			throw new RuntimeException(
@@ -773,7 +805,7 @@ public class Basic {
 				return;
 		}
 		
-		System.out.println("Tinycat BASIC v1.0 READY");
+		System.out.println("Tinycat BASIC v1.0a READY");
 		boolean done = false;
 		while (!done) {
 			System.out.print("> ");
@@ -814,14 +846,14 @@ public class Basic {
 			} else if (basic.token.equals("load")) {
 				if (basic.match_string()) {
 					basic.load_file(basic.token);
-					System.out.println("File saved");
+					System.out.println("File loaded");
 				} else {
 					System.err.println("String expected");
 				}
 			} else if (basic.token.equals("save")) {
 				if (basic.match_string()) {
 					basic.save_file(basic.token);
-					System.out.println("File loaded");
+					System.out.println("File saved");
 				} else {
 					System.err.println("String expected");
 				}
