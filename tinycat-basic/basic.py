@@ -9,6 +9,11 @@ import math
 import random
 import time
 
+try:
+	import readline
+except ImportError as e:
+	print("(Command line editing is unavailable.)\n")
+
 line = ""
 cursor = 0 # Index of current reading position
 token = None # The last token matched, if any
@@ -154,24 +159,43 @@ def parse_expression():
 	return t1
 	
 def parse_term():
-	t1 = parse_factor()
+	t1 = parse_power()
 	while match_mul_div():
 		op = token
-		t2 = parse_factor()
+		t2 = parse_power()
 		if op == "*":
 			t1 *= t2
 		elif op == "/":
 			t1 /= t2
+		elif op == "\\":
+			t1 //= t2
 		else:
-			raise SyntaxError(op)
+			raise SyntaxError("Unknown operator: " + op)
 	return t1
-	
+
+def parse_power():
+	t1 = parse_factor()
+	if match("^"):
+		return t1 ** parse_power()
+	else:
+		return t1
+
 function_args = {
+	"timer": [],
+	"rnd": [],
 	"int": ["n"],
 	"abs": ["n"],
 	"sqr": ["n"],
-	"timer": [],
-	"rnd": [],
+	"sin": ["n"],
+	"cos": ["n"],
+	"rad": ["n"],
+	"deg": ["n"],
+	"min": ["a", "b"],
+	"max": ["a", "b"],
+	"mod": ["a", "b"],
+	"hypot2": ["a", "b"],
+	"hypot3": ["a", "b", "c"],
+	"iif": ["a", "b", "c"],
 }
 
 def parse_factor():
@@ -206,9 +230,9 @@ def parse_args():
 	if match("("):
 		if match(")"):
 			return []
-		args = [parse_expression()]
+		args = [parse_disjunction()]
 		while match(","):
-			args.append(parse_expression())
+			args.append(parse_disjunction())
 		if match(")"):
 			return args
 		else:
@@ -223,16 +247,41 @@ def call_fn(name, args):
 		raise RuntimeError("Bad argument count")
 	elif name in function_code:
 		return call_user_fn(name, args)
+	elif name == "timer":
+		return time.process_time()
+	elif name == "rnd":
+		return random.random()
+	elif name == "pi":
+		return math.PI
 	elif name == "int":
 		return math.trunc(args[0])
 	elif name == "abs":
 		return abs(args[0])
 	elif name == "sqr":
 		return math.sqrt(args[0])
-	elif name == "timer":
-		return time.process_time()
-	elif name == "rnd":
-		return random.random()
+	elif name == "sin":
+		return math.sin(args[0])
+	elif name == "cos":
+		return math.cos(args[0])
+	elif name == "rad":
+		return math.radians(args[0])
+	elif name == "deg":
+		return math.degrees(args[0])
+	elif name == "min":
+		return min(args[0], args[1])
+	elif name == "max":
+		return max(args[0], args[1])
+	elif name == "mod":
+		return args[0] % args[1]
+	elif name == "hypot2":
+		return math.hypot(args[0], args[1])
+	elif name == "hypot3":
+		return math.sqrt(args[0] ** 2 + args[1] ** 2 + args[2] ** 2)
+	elif name == "iif":
+		if args[0]:
+			return args[1]
+		else:
+			return args[2]
 	else:
 		# Should never happen, but just in case
 		raise NameError("Unknown function: " + name)
@@ -307,6 +356,9 @@ def match_mul_div():
 		return True
 	elif match("/"):
 		token = "/"
+		return True
+	elif match("\\"):
+		token = "\\"
 		return True
 	else:
 		return False
@@ -650,4 +702,4 @@ def command_loop(banner):
 				print(e, "in column", cursor)
 
 if __name__ == "__main__":
-	command_loop("Tinycat BASIC v0.9 READY\n")
+	command_loop("Tinycat BASIC v0.9b READY\n")
