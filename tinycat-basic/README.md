@@ -18,6 +18,7 @@ Tinycat BASIC has a number of useful additions on top of its model:
 - arbitrary variable names;
 - control structures like DO ... LOOP and FOR ... NEXT;
 - the logical operators: AND, OR, NOT;
+- power and flooring division operators;
 - functions, both built-in and user-defined*;
 - random number generation.
 
@@ -41,9 +42,41 @@ Incidentally, Python itself appears to be twice as fast as Java for simple loopi
 
 I took advantage of the extra performance to make the Java interpreter extensible. That slowed it down again a little, but I think it's worth it.
 
+Extending Tinycat BASIC
+-----------------------
+
+The Java implementation is fully extensible: by subclassing the interpreter, you can add more statements, built-in functions and even expression kinds.
+
+In the Go implementation, you can only add more built-in functions without changing the source code.
+
+The Python implementation isn't extensible at this time.
+
+Supported statements
+--------------------
+
+	LET name "=" expression
+	IF expression THEN statement
+	GOTO expression
+	PRINT (string | expression)? ("," (string | expression))* ";"?
+	INPUT (string ",")? name ("," name)?
+	FOR name = expression TO expression (STEP expression)?
+	NEXT name
+	GOSUB expression
+	RETURN
+	DO
+	LOOP (WHILE | UNTIL) expression
+	REM text
+	DEF FN name "(" (name ("," name)?)? ")" "=" expression**
+	RANDOMIZE expression?
+	STOP
+	END
+	
+**) Note: absent in the Go edition.
+
 Expression syntax
 -----------------
 
+	expression ::= disjunction
 	disjunction ::= conjunction ("or" conjunction)*
 	conjunction ::= negation ("and" negation)*
 	negation ::= "not"? comparison
@@ -51,10 +84,12 @@ Expression syntax
 	comp_oper ::= "<" | ">" | "<=" | ">=" | "<>" | "="
 	
 	math_expr ::= term (("+"|"-") term)*
-	term ::= factor (("*" | "/") factor)*
-	factor ::= ("+"|"-")? (number | identifier | "(" disjunction ")")
+	term ::= factor (("*" | "/" | "\") factor)*
+	factor ::= ("+"|"-")? (number | name | funcall | "(" expression ")")
+	funcall ::= name ("(" expr_list? ")")?
+	expr_list ::= expression ("," expression)*
 
 Roadmap
 -------
 
-The next version will add power and flooring division operators.
+The next version will make all three editions embeddable.
