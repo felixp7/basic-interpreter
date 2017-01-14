@@ -138,3 +138,8 @@ Expression syntax
 	factor ::= ("+"|"-")? (number | name | funcall | "(" expression ")")
 	funcall ::= name ("(" expr_list? ")")?
 	expr_list ::= expression ("," expression)*
+
+Known bugs
+----------
+
+Java always displays numbers with at least 6 digits of precision. It seems to be a bug in `String.format()`.
