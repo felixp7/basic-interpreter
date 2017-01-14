@@ -75,6 +75,8 @@ def match_string():
 		
 	mark = cursor
 	cursor += 1 # Skip the opening double quote.
+	if cursor >= len(line):
+		raise IndexError("Unclosed string")
 	while line[cursor] != '"':
 		cursor += 1
 		if cursor >= len(line):
@@ -677,6 +679,9 @@ def command_loop(banner):
 	while not done:
 		try:
 			line = input("> ")
+		except SyntaxError as e:
+			print(e)
+			continue
 		except EOFError:
 			break
 		cursor = 0

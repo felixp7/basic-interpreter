@@ -140,6 +140,9 @@ public class Basic {
 			
 		final int mark = cursor;
 		cursor++; // Skip the opening double quote.
+		if (cursor >= line.length())
+			throw new RuntimeException(
+				"Unclosed string");
 		while (line.charAt(cursor) != '"') {
 			cursor++;
 			if (cursor >= line.length())
