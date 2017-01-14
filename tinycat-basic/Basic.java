@@ -818,6 +818,7 @@ public class Basic {
 			try {
 				line = input.readLine();
 				if (line == null) break;
+				if (line.length() == 0) continue;
 			} catch (IOException e) {
 				error.println(e);
 				continue;
