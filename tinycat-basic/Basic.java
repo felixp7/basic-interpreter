@@ -496,7 +496,7 @@ public class Basic {
 		if (match_string())
 			return token;
 		else
-			return String.valueOf(parse_expression());
+			return String.format("%1g", parse_expression());
 	}
 	
 	/** Extension point: override in a subclass to add new syntax. */

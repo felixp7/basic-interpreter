@@ -132,9 +132,9 @@ def parse_print():
 	if match_eol():
 		print()
 		return
-	value = str(parse_value())
+	value = parse_value()
 	while match(","):
-		value += str(parse_value())
+		value += parse_value()
 	if match(";"):
 		print(value, end="")
 	else:
@@ -145,7 +145,7 @@ def parse_value():
 	if match_string():
 		return token
 	else:
-		return parse_disjunction()
+		return "{:1g}".format(parse_disjunction())
 
 def parse_expression():
 	t1 = parse_term()
@@ -625,6 +625,12 @@ def parse_next():
 	else:
 		crt_line = stack[-3]
 
+def parse_randomize():
+	if match_eol():
+		random.seed()
+	else:
+		random.seed(int(parse_expression()))
+
 def parse_delete():
 	line_num1 = parse_expression()
 	if match(","):
@@ -669,7 +675,8 @@ statements = {
 	"for": parse_for,
 	"next": parse_next,
 	"def": parse_def,
-	"rem": parse_rem
+	"rem": parse_rem,
+	"randomize": parse_randomize
 }
 
 def command_loop(banner):
@@ -710,4 +717,4 @@ def command_loop(banner):
 				print(e, "in column", cursor)
 
 if __name__ == "__main__":
-	command_loop("Tinycat BASIC v0.9b READY\n")
+	command_loop("Tinycat BASIC v1.1 READY\n")
