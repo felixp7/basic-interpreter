@@ -31,21 +31,21 @@ public class Basic {
 	public Map<String, Double> variables =
 		new HashMap<String, Double>();
 	
-	public int line_num = 0;
-	public int crt_line = 0;
-	public boolean stop = false;
+	protected int line_num = 0;
+	protected int crt_line = 0;
+	protected boolean stop = false;
 	
 	public final SortedMap<Integer, String> program =
 		new TreeMap<Integer, String>();
-	public final List<Integer> addr = new ArrayList<Integer>();
-	public final LinkedList<Double> stack = new LinkedList<Double>();
+	protected final List<Integer> addr = new ArrayList<Integer>();
+	protected final LinkedList<Double> stack = new LinkedList<Double>();
 
-	public final Map<String, String[]> function_args =
+	protected final Map<String, String[]> function_args =
 		new HashMap<String, String[]>();
-	public final Map<String, String> function_code =
+	protected final Map<String, String> function_code =
 		new HashMap<String, String>();
 		
-	public Random rng = new Random();
+	protected Random rng = new Random();
 
 	public Basic() {
 		String args[] = new String[0];
@@ -757,6 +757,8 @@ public class Basic {
 			error.println(cursor);
 		}
 	}
+	
+	public boolean stopped() { return stop; }
 	
 	public void list_program() {
 		for (int i : program.keySet()) {

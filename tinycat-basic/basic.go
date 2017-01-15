@@ -6,6 +6,7 @@ import (
 	"errors"
 	"unicode"
 	"strings"
+	"strconv"
 	"math"
 	"math/rand"
 	"container/list"
@@ -124,8 +125,7 @@ func CallBuiltin(name string, args []float64) (float64, error) {
 // Parse (and run) the content of Context.Line, starting from Context.Cursor.
 func (ctx *Context) ParseLine() error {
 	if (ctx.MatchNumber()) {
-		var value int
-		_, err := fmt.Sscanf(ctx.Token, "%d", &value)
+		value, err := strconv.Atoi(ctx.Token)
 		if err != nil { return err }
 		ctx.Program[value] = strings.TrimSpace(ctx.Line[ctx.Cursor:])
 		return nil
@@ -298,9 +298,8 @@ func (ctx *Context) ParseInput() error {
 
 	for i, varname := range input_vars {
 		if i < len(data) {
-			var value float64
 			data[i] = strings.TrimSpace(data[i])
-			_, err := fmt.Sscanf(data[i], "%f", &value)
+			value, err := strconv.ParseFloat(data[i], 64)
 			if err != nil { return err }
 			ctx.Variables[varname] = value
 		} else {
@@ -354,11 +353,8 @@ func (ctx *Context) ParseFor() error {
 	var step float64
 	if ctx.MatchNocase("step") {
 		step, err = ctx.ParseArithmetic()
-		if err != nil {
-			return err
-		} else if step == 0 {
-			return errors.New("Infinite loop")
-		}
+		if err != nil { return err }
+		if step == 0 { return errors.New("Infinite loop") }
 	} else {
 		step = 1
 	}
@@ -469,13 +465,8 @@ func (ctx *Context) ParseDisjunction() (float64, error) {
 	if err != nil { return 0, err }
 	for ctx.MatchNocase("or") {
 		rside, err := ctx.ParseConjunction()
-		if err != nil {
-			return 0, err
-		} else if lside != 0 || rside != 0 {
-			lside = -1
-		} else {
-			lside = 0
-		}
+		if err != nil { return 0, err }
+		lside = Bool2float(lside != 0 || rside != 0)
 	}
 	return lside, nil
 }
@@ -483,15 +474,10 @@ func (ctx *Context) ParseDisjunction() (float64, error) {
 func (ctx *Context) ParseConjunction() (float64, error) {
 	lside, err := ctx.ParseNegation()
 	if err != nil { return 0, err }
-	for ctx.MatchNocase("or") {
+	for ctx.MatchNocase("and") {
 		rside, err := ctx.ParseNegation()
-		if err != nil {
-			return 0, err
-		} else if lside != 0 && rside != 0 {
-			lside = -1
-		} else {
-			lside = 0
-		}
+		if err != nil { return 0, err }
+		lside = Bool2float(lside != 0 && rside != 0)
 	}
 	return lside, nil
 }
@@ -600,8 +586,7 @@ func (ctx *Context) ParseFactor() (float64, error) {
 	}
 	
 	if ctx.MatchNumber() {
-		var value float64
-		_, err := fmt.Sscanf(ctx.Token, "%f", &value)
+		value, err := strconv.ParseFloat(ctx.Token, 64)
 		return value * signum, err
 	} else if ctx.MatchVarname() {
 		name := ctx.Token
@@ -637,15 +622,11 @@ func (ctx *Context) ParseArgs() ([]float64, error) {
 			return args, nil
 		}
 		value, err := ctx.ParseExpression()
-		if err != nil {
-			return args, err
-		}
+		if err != nil { return args, err }
 		args = append(args, value)
 		for ctx.Match(",") {
 			value, err := ctx.ParseExpression()
-			if err != nil {
-				return args, err
-			}
+			if err != nil { return args, err }
 			args = append(args, value)
 		}
 		if ctx.Match(")") {
@@ -830,6 +811,8 @@ func (ctx *Context) ContinueProgram() error {
 	return err
 }
 
+func (ctx *Context) Stopped() bool { return ctx.stop }
+
 func (ctx *Context) LoadFile(fn string) error {
 	file, err := os.Open(fn)
 	if err != nil { return err }
@@ -885,8 +868,7 @@ func (ctx *Context) CommandLoop(banner string) {
 			ctx.Program = make(Program)
 		} else if ctx.Token == "delete" {
 			if ctx.MatchNumber() {
-				var ln int
-				_, err = fmt.Sscanf(ctx.Token, "%d", &ln)
+				ln, _ := strconv.Atoi(ctx.Token)
 				delete(ctx.Program, ln)
 			} else {
 				err = errors.New("Line # expected")
@@ -922,5 +904,15 @@ func (ctx *Context) CommandLoop(banner string) {
 
 func main() {
 	basic := Context{Variables: make(Variables), Program: make(Program)}
-	basic.CommandLoop("Tinycat BASIC v0.9b READY")
+	
+	if len(os.Args) > 1 {
+		for _, i := range os.Args[1:] {
+			err := basic.LoadFile(i)
+			if err != nil { fmt.Fprintln(Errs, err); return }
+		}
+		basic.RunProgram()
+		if !basic.stop { return }
+	}
+
+	basic.CommandLoop("Tinycat BASIC v1.0 READY")
 }
