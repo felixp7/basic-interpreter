@@ -9,6 +9,8 @@ import math
 import random
 import time
 
+import sys
+
 try:
 	import readline
 except ImportError as e:
@@ -704,4 +706,13 @@ def command_loop(banner):
 				print(e, "in column", cursor)
 
 if __name__ == "__main__":
-	command_loop("Tinycat BASIC v1.1 READY\n")
+	if len(sys.argv) > 1:
+		for i in sys.argv[1:]:
+			line = '"' + i + '"'
+			cursor = 0
+			load_program()
+		run_program()
+		if stop:
+			command_loop("Tinycat BASIC v1.1 READY\n")
+	else:
+		command_loop("Tinycat BASIC v1.1 READY\n")
