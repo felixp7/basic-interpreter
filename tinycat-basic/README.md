@@ -36,7 +36,9 @@ Others can be added easily, but would cause more trouble than it's worth:
 Performance
 -----------
 
-The reference Python implementation is 225 times slower than the host language, after optimizations. The Java implementation proved harder to benchmark, as a long-running interpreter runs progressively faster. That said, it seems to be roughly 40 times slower than pure Java on a fresh start, and gets to within 40%-60% of a compiled Java program -- almost as if the interpreter wasn't in the way anymore! Last but not least, the Go implementation is 160 times slower than native code, which makes it 4 times slower than the Java version after JIT optimization.
+The reference Python implementation is 250 times slower than the host language even after optimizations. Conversely, the Go implementation is 55 times slower than native code, within limits for this type of interpreter.
+
+The Java implementation proved harder to benchmark, as a long-running interpreter runs progressively faster. That said, it seems to be roughly 40 times slower than pure Java on a fresh start (which is abysmally slow), but gets to within 40%-60% of a compiled Java program -- almost as if the interpreter wasn't in the way anymore -- which is actually one third faster than the Go edition!
 
 Incidentally, Python itself appears to be twice as fast as Java for simple looping and arithmetic. But Java is much better suited for interpreting another language. Or at least this interpreter architecture happens to suit Java unusually well.
 
@@ -56,11 +58,12 @@ Both the Go and Java interpreters support I/O redirection, but only the latter d
 Extending Tinycat BASIC
 -----------------------
 
-The Java implementation is fully extensible: by subclassing the interpreter, you can add more statements, built-in functions and even expression kinds.
+The Java implementation is fully extensible: by subclassing the interpreter, you can add more statements, built-in functions and even expression kinds!
+
+The Python implementation can be extended with new statements or functions.
 
 In the Go implementation, you can only add more built-in functions without changing the source code.
 
-The Python implementation isn't extensible at this time.
 
 Supported commands
 ------------------
@@ -143,3 +146,5 @@ Known bugs
 ----------
 
 Java always displays numbers with at least 6 digits of precision. It seems to be a bug in `String.format()`.
+
+Python always displays numbers with *at most* six digits of precision -- the exact opposite bug!
