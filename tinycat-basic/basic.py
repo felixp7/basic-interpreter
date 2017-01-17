@@ -185,6 +185,7 @@ def parse_power():
 function_args = {
 	"timer": [],
 	"rnd": [],
+	"pi": [],
 	"int": ["n"],
 	"abs": ["n"],
 	"sqr": ["n"],
@@ -249,41 +250,8 @@ def call_fn(name, args):
 		raise RuntimeError("Bad argument count")
 	elif name in function_code:
 		return call_user_fn(name, args)
-	elif name == "timer":
-		return time.process_time()
-	elif name == "rnd":
-		return random.random()
-	elif name == "pi":
-		return math.PI
-	elif name == "int":
-		return math.trunc(args[0])
-	elif name == "abs":
-		return abs(args[0])
-	elif name == "sqr":
-		return math.sqrt(args[0])
-	elif name == "sin":
-		return math.sin(args[0])
-	elif name == "cos":
-		return math.cos(args[0])
-	elif name == "rad":
-		return math.radians(args[0])
-	elif name == "deg":
-		return math.degrees(args[0])
-	elif name == "min":
-		return min(args[0], args[1])
-	elif name == "max":
-		return max(args[0], args[1])
-	elif name == "mod":
-		return args[0] % args[1]
-	elif name == "hypot2":
-		return math.hypot(args[0], args[1])
-	elif name == "hypot3":
-		return math.sqrt(args[0] ** 2 + args[1] ** 2 + args[2] ** 2)
-	elif name == "iif":
-		if args[0]:
-			return args[1]
-		else:
-			return args[2]
+	elif name in functions:
+		return functions[name](*args)
 	else:
 		# Should never happen, but just in case
 		raise NameError("Unknown function: " + name)
@@ -677,6 +645,25 @@ statements = {
 	"def": parse_def,
 	"rem": parse_rem,
 	"randomize": parse_randomize
+}
+
+functions = {
+	"timer": lambda: time.process_time(),
+	"rnd": lambda: random.random(),
+	"pi": lambda: math.pi,
+	"int": lambda n: math.trunc(n),
+	"abs": lambda n: abs(n),
+	"sqr": lambda n: math.sqrt(n),
+	"sin": lambda n: math.sin(n),
+	"cos": lambda n: math.cos(n),
+	"rad": lambda n: math.radians(n),
+	"deg": lambda n: math.degrees(n),
+	"min": lambda a, b: min(a, b),
+	"max": lambda a, b: max(a, b),
+	"mod": lambda a, b: a % b,
+	"hypot2": lambda a, b: math.hypot(a, b),
+	"hypot3": lambda a, b, c: math.sqrt(a * a + b * b + c * c),
+	"iif": lambda a, b, c: a and b or c
 }
 
 def command_loop(banner):
