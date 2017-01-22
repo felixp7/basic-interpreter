@@ -38,7 +38,7 @@ Performance
 
 The reference Python implementation is 250 times slower than the host language even after optimizations. Conversely, the Go implementation is 55 times slower than native code, within limits for this type of interpreter.
 
-The Java implementation proved harder to benchmark, as a long-running interpreter runs progressively faster. That said, it seems to be roughly 40 times slower than pure Java on a fresh start (which is abysmally slow), but gets to within 40%-60% of a compiled Java program -- almost as if the interpreter wasn't in the way anymore -- which is actually one third faster than the Go edition!
+The Java implementation proved harder to benchmark, as a long-running interpreter runs progressively faster. That said, it seems to be roughly 40 times slower than pure Java on a fresh start (which is abysmally slow), but gets to within 40%-60% of a compiled Java program. That's almost as if the interpreter wasn't in the way anymore, and actually one third faster than the Go edition!
 
 Incidentally, Python itself appears to be twice as fast as Java for simple looping and arithmetic. But Java is much better suited for interpreting another language. Or at least this interpreter architecture happens to suit Java unusually well.
 

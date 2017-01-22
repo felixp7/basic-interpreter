@@ -9,8 +9,6 @@ import math
 import random
 import time
 
-import sys
-
 try:
 	import readline
 except ImportError as e:
@@ -706,6 +704,7 @@ def command_loop(banner):
 				print(e, "in column", cursor)
 
 if __name__ == "__main__":
+	import sys
 	if len(sys.argv) > 1:
 		for i in sys.argv[1:]:
 			line = '"' + i + '"'

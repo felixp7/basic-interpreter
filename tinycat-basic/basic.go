@@ -828,11 +828,12 @@ func (ctx *Context) LoadFile(fn string) error {
 }
 
 func (ctx *Context) SaveFile(fn string) error {
-	file, err := os.Open(fn)
+	file, err := os.Create(fn)
 	if err != nil { return err }
 	defer file.Close()
+	fmt.Fprintln(Errs, "Opening file: " + fn)
 	for _, i := range ctx.Program.LineNumbers() {
-		_, err = fmt.Fprintf(Outs, "%d\t%s\n", i, ctx.Program[i])
+		_, err = fmt.Fprintf(file, "%d\t%s\n", i, ctx.Program[i])
 		if (err != nil) { return err }
 	}
 	return nil
@@ -877,19 +878,23 @@ func (ctx *Context) CommandLoop(banner string) {
 			if ok, err := ctx.MatchedString(); ok {
 				err = ctx.LoadFile(ctx.Token)
 				if err == nil {
-					fmt.Fprintln(Outs, "File loaded")
+					fmt.Fprintln(Outs, "File loaded.")
+				} else {
+					fmt.Fprintln(Errs, err)
 				}
 			} else if err == nil {
-				err = errors.New("String expected")
+				fmt.Fprintln(Errs, "String expected.")
 			}
 		} else if ctx.Token == "save" {
 			if ok, err := ctx.MatchedString(); ok {
 				err = ctx.SaveFile(ctx.Token)
 				if err == nil {
-					fmt.Fprintln(Outs, "File saved")
+					fmt.Fprintln(Outs, "File saved.")
+				} else {
+					fmt.Fprintln(Errs, err)
 				}
 			} else if err == nil {
-				err = errors.New("String expected")
+				fmt.Fprintln(Errs, "String expected.")
 			}
 		} else {
 			err = ctx.DispatchStatement()
