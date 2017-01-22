@@ -684,7 +684,7 @@ func (ctx *Context) MatchEol() bool {
 	return ctx.Cursor >= len(ctx.Line)
 }
 
-var RelOp = [6]string{"<=", "<", "=", "<>", ">", ">="}
+var RelOp = [6]string{"<=", "<>", ">=", "<", "=", ">"}
 
 func (ctx *Context) MatchRelation() bool {
 	ctx.SkipWhitespace()
@@ -884,6 +884,8 @@ func (ctx *Context) CommandLoop(banner string) {
 				}
 			} else if err == nil {
 				fmt.Fprintln(Errs, "String expected.")
+			} else {
+				fmt.Fprintln(Errs, err)
 			}
 		} else if ctx.Token == "save" {
 			if ok, err := ctx.MatchedString(); ok {
@@ -895,6 +897,8 @@ func (ctx *Context) CommandLoop(banner string) {
 				}
 			} else if err == nil {
 				fmt.Fprintln(Errs, "String expected.")
+			} else {
+				fmt.Fprintln(Errs, err)
 			}
 		} else {
 			err = ctx.DispatchStatement()
@@ -919,5 +923,5 @@ func main() {
 		if !basic.stop { return }
 	}
 
-	basic.CommandLoop("Tinycat BASIC v1.0 READY")
+	basic.CommandLoop("Tinycat BASIC v1.0 READY\nType BYE to quit.")
 }

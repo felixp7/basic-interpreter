@@ -1,0 +1,246 @@
+=encoding utf8
+
+=head1 NAME
+
+Tinycat - minimal BASIC dialect with line numbers
+
+=head1 SYNOPSIS
+
+B<basic> I<[filename...]>
+
+=head1 DESCRIPTION
+
+Tinycat is a minimal dialect of the BASIC programming language, created as a demonstration and exercise, but still with the hope that it will prove useful.
+
+The only supported data type is double-precision floating point numbers. (Strings can only be displayed, not manipulated.) This is sufficient for simple games or mathematics.
+
+Save files are plain text, and can be created or modified with any text editor. The language itself is case-insensitive, like most BASIC dialects.
+
+=head1 USAGE
+
+Running B<basic> without any arguments will put you at an interactive prompt. You can quit by entering BYE, or pressing Ctrl-D.
+
+Giving one or more files as command-line arguments to the interpreter will cause it to first load those files in sequence, then RUN them. In this mode, the interpreter will normally quit when the program ends, either by reaching the last line or a call to END.
+
+Either way, if the running program is interrupted with the STOP statement, B<basic> will enter interactive mode. Execution can be resumed with CONTINUE, perhaps after replacing some variables and/or lines of code.
+
+A line prefixed with a number will be stored for later use, overwriting any existing line with the same number. The absence of a line number will cause it to be interpreted on the spot, whether in interactive mode or not.
+
+Commands aren't available in a stored program. Some statements make sense in either mode.
+
+=head1 COMMANDS
+
+=over
+
+=item LIST
+
+Display the stored program, if any, sorted by line number.
+
+=item RUN
+
+Runs the stored program, if any.
+
+=item CONTINUE
+
+Resumes running a program interrupted with STOP (see below).
+
+=item CLEAR
+
+Deletes all currently defined variables.
+
+=item NEW
+
+Deletes all stored program lines.
+
+=item DELETE line-number
+
+Deletes only the given line number, if it exists.
+
+=item LOAD "filename"
+
+Loads a stored program from the named file. If the file contains immediate commands, each is run as encountered.
+
+=item SAVE "filename"
+
+Saves a stored program into the named file.
+
+=item BYE
+
+Quits the interpreter and return to the operating system. You can also press Ctrl-D.
+
+=back
+
+=head1 STATEMENTS
+
+=over
+
+=item LET name "=" expression
+
+Creates a variable with given value.
+
+=item IF expression THEN statement
+
+Runs statement if the expression is true.
+
+=item GOTO expression
+
+Jumps to the line number given by expression (any decimals are truncated). Usually used after IF. After a program has been interrupted with STOP, GOTO can be used to change where it should CONTINUE from.
+
+=item PRINT (string | expression)? ("," (string | expression))* ";"?
+
+Displays the given value or values, in order, joined together. Adds a newline unless a semicolon ends the list. Just PRINT by itself adds a newline.
+
+=item INPUT (string ",")? name ("," name)?
+
+Prompts the user to enter one or more numbers separated by commas, and assigns them in order to the given variables. If there are more variables than entered numbers, the remaining ones are zeroed.
+
+=item FOR name = expression TO expression (STEP expression)?
+
+Introduces a counted loop. Beware that it will always run at least once, no matter what the limits are.
+
+=item NEXT name
+
+Loops around to the matching FOR unless the limit was reached. The variable name must be the same as in the matching FOR, otherwise weird things will happen. 
+
+=item GOSUB expression
+
+Jumps to the subroutine given by expression (any decimals are truncated).
+
+=item RETURN
+
+Returns from a subroutine, to right after the matching GOSUB statement.
+
+=item DO
+
+Introduces a conditional loop.
+
+=item LOOP (WHILE | UNTIL) expression
+
+Loops around to the matching DO, depending on whether the condition is met.
+
+=item REM text
+
+Introduces a comment. Any text that follows is ignored, to the end of the line.
+
+=item DEF FN name "(" (name ("," name)?)? ")" "=" expression
+
+Defines a function with given name and arguments. Functions so defined can be called just like built-ins. Trying to redefine a function during the same run of the program is an error.
+
+DEF FN is absent in some implementations.
+
+=item RANDOMIZE expression?
+
+Initializes the random number generator, optionally to a fixed value (any decimals are truncated).
+
+Some implementations do this automatically when B<basic> starts, but not all.
+
+=item STOP
+
+Interrupts the running of a program, and puts B<basic> in interactive mode. Useless if already in that state.
+
+=item END
+
+Ends the currently running program. Returns to either interactive mode or the operating system, depending on how the program was started.
+
+=back
+
+=head1 FUNCTIONS
+
+=over
+
+=item TIMER()
+
+Returns an implementation-dependent time in seconds (with decimals). It can be used to measure elapsed intervals. Can be called without parentheses.
+
+=item RND()
+
+Returns a random number in the [0, 1) interval. Can be called without parentheses.
+
+=item PI()
+
+Returns PI with 15-figure precision. Can be called without parentheses.
+
+=item INT(n)
+
+Returns I<n> with any decimals truncated.
+
+=item ABS(n)
+
+Returns the absolute value of I<n>.
+
+=item SQR(n)
+
+Returns the square root of I<n>.
+
+=item SIN(n)
+
+Returns the sine of I<n>. (Works with radians.)
+
+=item COS(n)
+
+Returns the cosine of I<n>. (Works with radians.)
+
+=item RAD(n)
+
+Returns I<n> converted from degrees to radians.
+
+=item DEG(n)
+
+Returns I<n> converted from radians to degrees.
+
+=item MIN(a, b)
+
+Returns the smallest of I<a> and I<b>.
+
+=item MAX(a, b)
+
+Returns the largest of I<a> and I<b>.
+
+=item MOD(a, b)
+
+Returns the remainder of dividing I<a> by I<b>. Results may be unexpected if either have decimals.
+
+=item HYPOT2(a, b)
+
+Returns the equivalent of SQR(a ^ 2 + b ^ 2).
+
+=item HYPOT3(a, b, c)
+
+Returns the equivalent of SQR(a ^ 2 + b ^ 2 + c ^ 2).
+
+=item IIF(a, b, c)
+
+Returns I<b> if I<a> is true, else returns I<c>. Beware that all three are always evaluated.
+
+=back
+
+=head1 OPERATORS
+
+Arithmetic operators are +, -, *, /, \ (flooring division) and ^ (exponentiation). The latter is right-associative. Unary minus is also supported. In fact, a minus in front of a number will always be interpreted as unary minus, and not a sign; the effect is identical anyway.
+
+Comparison operators are <=, <, =, <>, >, >=. Logical operators AND, OR, NOT are also supported. Beware that both sides of a logical operator are always evaluated.
+
+=head1 VERSIONS
+
+This manual applies to version 1.1 of the interpreter, from January 2017.
+
+=head1 BUGS
+
+Some implementations are weird about the minimum number of decimals they display for a given number.
+
+=head1 EXAMPLE
+
+	10 rem Compute the greatest common divisor (GCD) of two numbers.
+	20 input "Enter two numbers, please: ", a, b
+	30 if a > b then let a = a - b
+	40 if b > a then let b = b - a
+	50 if a <> b then goto 30
+	60 print "Greatest Common Divisor of given numbers: ", a
+
+=head1 AUTHORS
+
+Written by Felix Pleşoianu L<http://felix.plesoianu.ro/>.
+
+=head1 LICENSE
+
+This software is open source under the MIT License. Use at your own risk.
