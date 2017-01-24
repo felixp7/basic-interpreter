@@ -376,6 +376,7 @@ def parse_comparison():
 def match_relation():
 	global token, cursor
 	skip_whitespace()
+	# Always try to match the longer operators first.
 	for op in ["=", "<>", "<=", ">=", "<", ">"]:
 		if line.startswith(op, cursor):
 			token = op
@@ -429,7 +430,16 @@ def parse_input():
 	for i in range(len(input_vars)):
 		v = input_vars[i]
 		if i < len(data):
-			variables[v] = float(data[i])
+			data[i] = data[i].strip()
+			if len(data[i]) == 0:
+				variables[v] = 0
+			else:
+				try:
+					variables[v] = float(data[i])
+				except ValueError:
+					print("Can't parse number: " + data[i])
+					print("Maybe you forgot a comma?")
+					variables[v] = 0
 		else:
 			variables[v] = 0
 
@@ -712,6 +722,7 @@ if __name__ == "__main__":
 			load_program()
 		run_program()
 		if stop:
-			command_loop("Tinycat BASIC v1.1 READY\n")
+			command_loop(
+				"Tinycat BASIC v1.1 READY\nType BYE to quit.")
 	else:
-		command_loop("Tinycat BASIC v1.1 READY\n")
+		command_loop("Tinycat BASIC v1.1 READY\nType BYE to quit.")

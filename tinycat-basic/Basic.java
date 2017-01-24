@@ -17,6 +17,7 @@ import java.io.PrintStream;
 
 /** Extensible line-number Basic interpreter in under 1000 lines of Java. */
 public class Basic {
+	// Always try to match the longer operators first.
 	public static final String RelOp[] = {"=", "<>", "<=", ">=", "<", ">"};
 	
 	public BufferedReader input =
@@ -345,12 +346,23 @@ public class Basic {
 
 		for (int i = 0; i < input_vars.length; i++) {
 			final String v = input_vars[i];
-			if (i < data.length)
-				variables.put(v,
-					Double.parseDouble(
-						data[i].trim()));
-			else
+			if (i < data.length) {
+				data[i] = data[i].trim();
+				if (data[i].length() == 0) {
+					variables.put(v, 0.0);
+				} else {
+					try {
+						variables.put(v,
+							Double.parseDouble(data[i]));
+					} catch (NumberFormatException e) {
+						error.print("Can't parse number: " + data[i]);
+						error.println(" Maybe you forgot a comma?");
+					}
+					variables.put(v, 0.0);
+				}
+			} else {
 				variables.put(v, 0.0);
+			}
 		}
 	}
 
@@ -889,6 +901,7 @@ public class Basic {
 				return;
 		}
 		
-		basic.command_loop("Tinycat BASIC v1.1 READY");
+		basic.command_loop(
+			"Tinycat BASIC v1.1 READY\nType BYE to quit.");
 	}
 }

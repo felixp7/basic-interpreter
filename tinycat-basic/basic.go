@@ -299,9 +299,21 @@ func (ctx *Context) ParseInput() error {
 	for i, varname := range input_vars {
 		if i < len(data) {
 			data[i] = strings.TrimSpace(data[i])
-			value, err := strconv.ParseFloat(data[i], 64)
-			if err != nil { return err }
-			ctx.Variables[varname] = value
+			if len(data[i]) == 0 {
+				ctx.Variables[varname] = 0
+			} else {
+				value, err := strconv.ParseFloat(data[i], 64)
+				if err != nil {
+					fmt.Fprintf(Errs,
+						"Can't parse number: " +
+						data[i])
+					fmt.Fprintf(Errs,
+						" Maybe you forgot a comma?\n")
+					ctx.Variables[varname] = 0
+				} else {
+					ctx.Variables[varname] = value
+				}
+			}
 		} else {
 			ctx.Variables[varname] = 0
 		}
@@ -684,6 +696,7 @@ func (ctx *Context) MatchEol() bool {
 	return ctx.Cursor >= len(ctx.Line)
 }
 
+// Always try to match the longer operators first.
 var RelOp = [6]string{"<=", "<>", ">=", "<", "=", ">"}
 
 func (ctx *Context) MatchRelation() bool {
@@ -923,5 +936,5 @@ func main() {
 		if !basic.stop { return }
 	}
 
-	basic.CommandLoop("Tinycat BASIC v1.0 READY\nType BYE to quit.")
+	basic.CommandLoop("Tinycat BASIC v1.1 READY\nType BYE to quit.")
 }
