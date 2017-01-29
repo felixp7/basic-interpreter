@@ -36,13 +36,13 @@ Others can be added easily, but would cause more trouble than it's worth:
 Performance
 -----------
 
-The reference Python implementation is 250 times slower than the host language even after optimizations. Conversely, the Go implementation is 55 times slower than native code, within limits for this type of interpreter.
+Note: the figures below have changed repeatedly as the interpreters were improved and flaws were fixed in the benchmark itself. Consider them a rough indication of relative performance.
 
-The Java implementation proved harder to benchmark, as a long-running interpreter runs progressively faster. That said, it seems to be roughly 40 times slower than pure Java on a fresh start (which is abysmally slow), but gets to within 40%-60% of a compiled Java program. That's almost as if the interpreter wasn't in the way anymore, and actually one third faster than the Go edition!
+The reference Python implementation is 113 times slower than the host language. Conversely, the Go implementation is 47 times slower than native code, within limits for this type of interpreter.
 
-Incidentally, Python itself appears to be twice as fast as Java for simple looping and arithmetic. But Java is much better suited for interpreting another language. Or at least this interpreter architecture happens to suit Java unusually well.
+The Java implementation proved harder to benchmark, as a long-running interpreter runs progressively faster. That said, it seems to be roughly 47 times slower than pure Java on a fresh start (7 times slower than the Go implementation in absolute numbers), but ends up only 2.6 times slower than a compiled Java program. That's almost as if the interpreter wasn't in the way anymore, and actually three times faster than the Go implementation!
 
-I took advantage of the extra performance to make the Java interpreter extensible. That slowed it down again a little, but I think it's worth it.
+Overall, Java seems the best suited for interpreting another language. Or at least this interpreter architecture happens to suit Java unusually well.
 
 Embedding Tinycat BASIC
 -----------------------
@@ -63,7 +63,6 @@ The Java implementation is fully extensible: by subclassing the interpreter, you
 The Python implementation can be extended with new statements or functions.
 
 In the Go implementation, you can only add more built-in functions without changing the source code.
-
 
 Supported commands
 ------------------
@@ -142,9 +141,11 @@ Expression syntax
 	funcall ::= name ("(" expr_list? ")")?
 	expr_list ::= expression ("," expression)*
 
-Known bugs
-----------
+Bugs and caveats
+----------------
 
 Java always displays numbers with at least 6 digits of precision. It seems to be a bug in `String.format()`.
 
-Python always displays numbers with *at most* six digits of precision -- the exact opposite bug!
+Python always displays numbers with *at most* six digits of precision -- the exact opposite behavior!
+
+For portability, programs making use of randomness should call RANDOMIZE near the beginning. Not all implementations do that by default.
