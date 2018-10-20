@@ -2,7 +2,7 @@ Tinycat BASIC
 =============
 
 
-Tinycat BASIC is a line-number BASIC dialect that can be implemented in less than a thousand lines of Java or Go (barring extensions to the core). It achieves that by relying on direct interpretation and having no type system. Its name is meant to honor the classic dialect Tiny BASIC as inspiration and ancestry.
+Tinycat BASIC is a line-number BASIC dialect that can be implemented in less than a thousand lines of Java, Go or D (barring extensions to the core). It achieves that by relying on direct interpretation and having no type system. Its name is meant to honor the classic dialect Tiny BASIC as inspiration and ancestry.
 
 Rationale
 ---------
@@ -22,7 +22,7 @@ Tinycat BASIC has a number of useful additions on top of its model:
 - functions, both built-in and user-defined*;
 - random number generation.
 
-*) Note: the new Go implementation lacks DEF FN.
+*) Note: the Go implementation lacks DEF FN.
 
 Some features would *not* be trivial to add, and therefore outside the scope of this project:
 
@@ -38,7 +38,7 @@ Performance
 
 Note: the figures below have changed repeatedly as the interpreters were improved and flaws were fixed in the benchmark itself. Consider them a rough indication of relative performance.
 
-The reference Python implementation is 113 times slower than the host language. Conversely, the Go implementation is 47 times slower than native code, within limits for this type of interpreter.
+The reference Python implementation is 113 times slower than the host language. Conversely, the Go implementation is 47 times slower than native code, within limits for this type of interpreter. The D interpreter starts out 49 times slower than native code, but becomes only 43 times slower when optimized (it gains more from optimization than the native benchmark). In absolute terms however it's slower than Go by roughly 35%. Compilers other than `dmd` should yield better results.
 
 The Java implementation proved harder to benchmark, as a long-running interpreter runs progressively faster. That said, it seems to be roughly 47 times slower than pure Java on a fresh start (7 times slower than the Go implementation in absolute numbers), but ends up only 2.6 times slower than a compiled Java program. That's almost as if the interpreter wasn't in the way anymore, and actually three times faster than the Go implementation!
 
@@ -47,22 +47,22 @@ Overall, Java seems the best suited for interpreting another language. Or at lea
 Embedding Tinycat BASIC
 -----------------------
 
-All three editions of the interpreter can be embedded, with some caveats:
+Most editions of the interpreter can be embedded, with some caveats:
 
 - the Python edition will only have one shared context;
-- only the Java edition has independent per-context random number generators;
-- the Go edition has a (trivial) `main()` function that must be replaced.
+- the D edition doesn't have its own `main` function;
+- the Go edition would require editing, and even then with limitations.
 
-Both the Go and Java interpreters support I/O redirection, but only the latter does it per-context.
+The D and Java interpreters support per-context RNGs and I/O redirection.
 
 Extending Tinycat BASIC
 -----------------------
 
-The Java implementation is fully extensible: by subclassing the interpreter, you can add more statements, built-in functions and even expression kinds!
+The D and Java implementations are fully extensible: by subclassing the interpreter, you can add more statements, built-in functions and even expression syntax!
 
 The Python implementation can be extended with new statements or functions.
 
-In the Go implementation, you can only add more built-in functions without changing the source code.
+In the Go implementation, you can only add more built-in functions without changing the source code, even if you convert it to an importable package.
 
 Supported commands
 ------------------
