@@ -31,15 +31,15 @@ public class Basic {
 	
 	public Map<String, Double> variables =
 		new HashMap<String, Double>();
+	public final SortedMap<Integer, String> program =
+		new TreeMap<Integer, String>();
 	
-	protected int line_num = 0;
+	protected final List<Integer> addr = new ArrayList<Integer>();
 	protected int crt_line = 0;
 	protected boolean stop = false;
 	
-	public final SortedMap<Integer, String> program =
-		new TreeMap<Integer, String>();
-	protected final List<Integer> addr = new ArrayList<Integer>();
-	protected final LinkedList<Double> stack = new LinkedList<Double>();
+	protected final LinkedList<Double> dstack = new LinkedList<Double>();
+	protected final LinkedList<Integer> rstack = new LinkedList<Integer>();
 
 	protected final Map<String, String[]> function_args =
 		new HashMap<String, String[]>();
@@ -59,9 +59,9 @@ public class Basic {
 		function_args.put("sqr", args);
 		function_args.put("sin", args);
 		function_args.put("cos", args);
-		args = new String[]{"a", "b"};
 		function_args.put("rad", args);
 		function_args.put("deg", args);
+		args = new String[]{"a", "b"};
 		function_args.put("min", args);
 		function_args.put("max", args);
 		function_args.put("mod", args);
@@ -254,7 +254,7 @@ public class Basic {
 		else if (token.equals("return"))
 			parse_return();
 		else if (token.equals("do"))
-			stack.push(Double.valueOf(crt_line));
+			rstack.push(crt_line);
 		else if (token.equals("loop"))
 			parse_loop();
 		else if (token.equals("rem"))
@@ -346,21 +346,23 @@ public class Basic {
 
 		for (int i = 0; i < input_vars.length; i++) {
 			final String v = input_vars[i];
-			if (i < data.length) {
-				data[i] = data[i].trim();
-				if (data[i].length() == 0) {
-					variables.put(v, 0.0);
-				} else {
-					try {
-						variables.put(v,
-							Double.parseDouble(data[i]));
-					} catch (NumberFormatException e) {
-						error.print("Can't parse number: " + data[i]);
-						error.println(" Maybe you forgot a comma?");
-					}
-					variables.put(v, 0.0);
-				}
-			} else {
+			if (i >= data.length) {
+				variables.put(v, 0.0);
+				continue;
+			}
+			
+			data[i] = data[i].trim();
+
+			if (data[i].length() == 0) {
+				variables.put(v, 0.0);
+				continue;
+			}
+
+			try {
+				variables.put(v, Double.parseDouble(data[i]));
+			} catch (NumberFormatException e) {
+				error.print("Can't parse number: " + data[i]);
+				error.println(" Maybe you forgot a comma?");
 				variables.put(v, 0.0);
 			}
 		}
@@ -405,12 +407,15 @@ public class Basic {
 			step = 1;
 		}
 
-		stack.push(Double.valueOf(crt_line));
-		stack.push(limit);
-		stack.push(step);
+		rstack.push(crt_line);
+		dstack.push(limit);
+		dstack.push(step);
 	}
 
 	public void parse_next() {
+		if (dstack.size() < 2)
+			throw new RuntimeException("NEXT without FOR");
+		
 		if (!match_varname())
 			throw new RuntimeException("Variable expected");
 
@@ -421,28 +426,28 @@ public class Basic {
 				"Variable not found: " + var_name);
 		
 		variables.put(var_name,
-			variables.get(var_name) + stack.get(0));
+			variables.get(var_name) + dstack.get(0));
 		final boolean done;
-		if (stack.get(0) > 0)
-			done = variables.get(var_name) > stack.get(1);
-		else if (stack.get(0) < 0)
-			done = variables.get(var_name) < stack.get(1);
+		if (dstack.get(0) > 0)
+			done = variables.get(var_name) > dstack.get(1);
+		else if (dstack.get(0) < 0)
+			done = variables.get(var_name) < dstack.get(1);
 		else
 			throw new RuntimeException("Infinite loop");
 		
 		if (done) {
-			stack.pop();
-			stack.pop();
-			stack.pop();
+			rstack.pop();
+			dstack.pop();
+			dstack.pop();
 		} else {
-			crt_line = stack.get(2).intValue();
+			crt_line = rstack.get(0);
 		}
 	}
 
 	public void parse_gosub() {
 		final int ln = (int) parse_arithmetic();
 		if (addr.contains(ln)) {
-			stack.push(Double.valueOf(crt_line));
+			rstack.push(crt_line);
 			crt_line = addr.indexOf(ln);
 		} else {
 			throw new RuntimeException(
@@ -451,8 +456,8 @@ public class Basic {
 	}
 
 	public void parse_return() {
-		if (stack.size() > 0)
-			crt_line = stack.pop().intValue();
+		if (rstack.size() > 0)
+			crt_line = rstack.pop();
 		else
 			throw new RuntimeException("RETURN without GOSUB");
 	}
@@ -460,14 +465,14 @@ public class Basic {
 	public void parse_loop() {
 		if (match_nocase("while")) {
 			if (parse_expression() != 0)
-				crt_line = stack.getLast().intValue();
+				crt_line = rstack.getLast();
 			else
-				stack.pop();
+				rstack.pop();
 		} else if (match_nocase("until")) {
 			if (parse_expression() == 0)
-				stack.pop();
+				crt_line = rstack.getLast();
 			else
-				crt_line = stack.getLast().intValue();
+				rstack.pop();
 		} else {
 			throw new RuntimeException("Condition expected");
 		}
@@ -744,7 +749,8 @@ public class Basic {
 		for (String i : function_code.keySet())
 			function_args.remove(i);
 		function_code.clear();
-		stack.clear();
+		dstack.clear();
+		rstack.clear();
 		addr.clear();
 		addr.addAll(program.keySet());
 		crt_line = 0;
@@ -752,6 +758,7 @@ public class Basic {
 	}
 
 	public void continue_program() {
+		int line_num = 0;
 		stop = false;
 		try {
 			while (crt_line < addr.size() && !stop) {
@@ -902,6 +909,6 @@ public class Basic {
 		}
 		
 		basic.command_loop(
-			"Tinycat BASIC v1.1 READY\nType BYE to quit.");
+			"Tinycat BASIC v1.1.1 READY\nType BYE to quit.");
 	}
 }

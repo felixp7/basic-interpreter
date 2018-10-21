@@ -356,27 +356,31 @@ class Basic {
 		}
 
 		foreach (i, v; input_vars) {
-			if (i < data.length) {
-				data[i] = data[i].strip;
-				if (data[i].length == 0) {
-					variables[v] = 0.0;
-				} else {
-					try {
-						double d;
-						data[i].formattedRead!"%g"(d);
-						variables[v] = d;
-					} catch (FormatException e) {
-						error.write("Can't parse number: " ~ data[i]);
-						error.writeln(" Maybe you forgot a comma?");
-						variables[v] = 0.0;
-					}
-				}
-			} else {
+			if (i >= data.length) {
+				variables[v] = 0.0;
+				continue;
+			}
+			
+			data[i] = data[i].strip;
+
+			if (data[i].length == 0) {
+				variables[v] = 0.0;
+				continue;
+			}
+			
+			try {
+				double d;
+				data[i].formattedRead!"%g"(d);
+				variables[v] = d;
+			} catch (FormatException e) {
+				error.write("Can't parse number: " ~ data[i]);
+				error.writeln(" Maybe you forgot a comma?");
 				variables[v] = 0.0;
 			}
 		}
 	}
 	
+	/// Parse and interpret a FOR statement at the cursor position.
 	void parseFor() {
 		if (!matchVarname)
 			throw new Exception("Variable expected");
@@ -407,6 +411,7 @@ class Basic {
 		dstack ~= step;
 	}
 	
+	/// Parse and interpret a NEXT statement at the cursor position.
 	void parseNext() {
 		if (dstack.length < 2)
 			throw new Exception("NEXT without FOR");
@@ -438,6 +443,7 @@ class Basic {
 		}
 	}
 	
+	/// Parse and interpret a GOSUB statement at the cursor position.
 	void parseGosub() {
 		const uint ln = cast(uint) parseArithmetic;
 		size_t dest = addr.indexOf(ln);
@@ -450,6 +456,7 @@ class Basic {
 		}
 	}
 	
+	/// Parse and interpret a RETURN statement at the cursor position.
 	void parseReturn() {
 		if (rstack.length > 0) {
 			crtLine = rstack[$ - 1];
@@ -459,6 +466,7 @@ class Basic {
 		}
 	}
 	
+	/// Parse and interpret a LOOP statement at the cursor position.
 	void parseLoop() {
 		if (rstack.length == 0) {
 			throw new Exception("LOOP without DO");
@@ -477,6 +485,7 @@ class Basic {
 		}
 	}
 	
+	/// Parse and interpret a DEF FN statement at the cursor position.
 	void parseDef() {
 		if (!matchNoCase("fn"))
 			throw new Exception("Missing 'fn'");
@@ -772,7 +781,8 @@ class Basic {
 			throw new Exception(
 				"Unknown function: " ~ name);
 	}
-	
+
+	/// Store a numbered line or else parse/interpret it on the spot.
 	void parseLine() {
 		if (matchNumber) {
 			uint ln;
@@ -783,6 +793,7 @@ class Basic {
 		}
 	}
 
+	/// Initialize data structures and run the stored program.
 	void runProgram() {
 		foreach (i; functionCode.keys)
 			functionArgs.remove(i);
@@ -794,7 +805,8 @@ class Basic {
 		crtLine = 0;
 		continueProgram;
 	}
-	
+
+	/// Resume running the stored program after a STOP statement.
 	void continueProgram() {
 		uint lineNum;
 		stop = false;
@@ -812,11 +824,13 @@ class Basic {
 		}
 	}
 	
+	/// Print out stored program in order to the current output file.
 	void listProgram() {
 		foreach (i; program.keys.sort)
 			output.writefln("%d\t%s", i, program[i]);
 	}
 	
+	/// Write stored program in order to the given file.
 	void saveFile(const string fn) {
 		try {
 			File f = File(fn, "w");
@@ -828,6 +842,7 @@ class Basic {
 		}
 	}
 	
+	/// Read program from the given file as if it was typed in.
 	void loadFile(const string fn) {
 		try {
 			File f = File(fn);
@@ -841,7 +856,8 @@ class Basic {
 			error.writeln(e);
 		}
 	}
-	
+
+	/// Enter interactive command loop.
 	public void commandLoop(const string banner) {
 		output.writeln(banner);
 		bool done;

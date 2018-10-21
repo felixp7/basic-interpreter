@@ -9,6 +9,8 @@ Rationale
 
 While the hardware limitations that made Tiny BASIC desirable are largely a thing of the past, having programming language dialects that can be *trivially* implemented remains a good idea. It reduces software dependencies and black box components.
 
+You can also think of it as an art project, and/or a comparative study in programming language implementation.
+
 Features
 --------
 
@@ -149,3 +151,5 @@ Java always displays numbers with at least 6 digits of precision. It seems to be
 Python always displays numbers with *at most* six digits of precision -- the exact opposite behavior!
 
 For portability, programs making use of randomness should call RANDOMIZE near the beginning. Not all implementations do that by default.
+
+The Go implementation is abandoned as of October 2018.
