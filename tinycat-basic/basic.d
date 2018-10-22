@@ -13,7 +13,7 @@ import std.math;
 import std.random;
 
 /// Good old element search that returns an index instead of a range.
-size_t indexOf(const uint[] haystack, const uint needle) {
+long indexOf(const uint[] haystack, const uint needle) {
 	foreach (i, num; haystack)
 		if (num == needle)
 			return i;
@@ -311,9 +311,9 @@ class Basic {
 	/// Parse and interpret a GOTO statement at the cursor position.
 	void parseGoto() {
 		const uint ln = cast(uint) parseArithmetic;
-		size_t dest = addr.indexOf(ln);
+		const long dest = addr.indexOf(ln);
 		if (dest > -1)
-			crtLine = dest;
+			crtLine = cast(size_t) dest;
 		else
 			throw new Exception(
 				format("Line not found: %d", ln));
@@ -446,10 +446,10 @@ class Basic {
 	/// Parse and interpret a GOSUB statement at the cursor position.
 	void parseGosub() {
 		const uint ln = cast(uint) parseArithmetic;
-		size_t dest = addr.indexOf(ln);
+		const long dest = addr.indexOf(ln);
 		if (dest > -1) {
 			rstack ~= crtLine;
-			crtLine = dest;
+			crtLine = cast(size_t) dest;
 		} else {
 			throw new Exception(
 				format("Line not found: %d", ln));
@@ -925,8 +925,8 @@ class Basic {
 }
 
 unittest {
-	assert([1, 2, 3, 4, 5].indexOf(3) == 2);
-	assert([1, 2, 3, 4, 5].indexOf(6) == -1);
+	assert([10, 20, 30, 40, 50].indexOf(30) == 2);
+	assert([10, 20, 30, 40, 50].indexOf(60) == -1);
 }
 
 unittest {

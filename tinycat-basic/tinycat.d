@@ -11,5 +11,5 @@ void main(string[] args) {
 			return;
 	}
 	
-	ctx.commandLoop("Tinycat BASIC v1.1 READY\nType BYE to quit.");
+	ctx.commandLoop("Tinycat BASIC v1.1.1 READY\nType BYE to quit.");
 }

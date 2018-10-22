@@ -18,11 +18,11 @@ Save files are plain text, and can be created or modified with any text editor. 
 
 =head1 USAGE
 
-Running B<basic> without any arguments will put you at an interactive prompt. You can quit by entering BYE, or pressing Ctrl-D.
+Running B<basic> without any arguments will put you at an interactive prompt. You can quit by entering C<BYE>, or pressing Ctrl-D.
 
-Giving one or more files as command-line arguments to the interpreter will cause it to first load those files in sequence, then RUN them. In this mode, the interpreter will normally quit when the program ends, either by reaching the last line or a call to END.
+Giving one or more files as command-line arguments to the interpreter will cause it to first load those files in sequence, then C<RUN> them. In this mode, the interpreter will normally quit when the program ends, either by reaching the last line or a call to C<END>.
 
-Either way, if the running program is interrupted with the STOP statement, B<basic> will enter interactive mode. Execution can be resumed with CONTINUE, perhaps after replacing some variables and/or lines of code.
+Either way, if the running program is interrupted with the C<STOP> statement, B<basic> will enter interactive mode. Execution can be resumed with C<CONTINUE>, perhaps after replacing some variables and/or lines of code.
 
 A line prefixed with a number will be stored for later use, overwriting any existing line with the same number. The absence of a line number will cause it to be interpreted on the spot, whether in interactive mode or not.
 
@@ -84,13 +84,13 @@ Runs statement if the expression is true.
 
 =item GOTO expression
 
-Jumps to the line number given by expression (any decimals are truncated). Usually used after IF. After a program has been interrupted with STOP, GOTO can be used to change where it should CONTINUE from.
+Jumps to the line number given by expression (any decimals are truncated). Usually used after C<IF>. After a program has been interrupted with C<STOP>, C<GOTO> can be used to change where it should C<CONTINUE> from.
 
 =item PRINT (string | expression)? ("," (string | expression))* ";"?
 
-Displays the given value or values, in order, joined together. Adds a newline unless a semicolon ends the list. Just PRINT by itself adds a newline.
+Displays the given value or values, in order, joined together. Adds a newline unless a semicolon ends the list. Just C<PRINT> by itself adds a newline.
 
-=item INPUT (string ",")? name ("," name)?
+=item INPUT (string ",")? name ("," name)*
 
 Prompts the user to enter one or more numbers separated by commas, and assigns them in order to the given variables. If there are more variables than entered numbers, the remaining ones are zeroed.
 
@@ -100,7 +100,7 @@ Introduces a counted loop. Beware that it will always run at least once, no matt
 
 =item NEXT name
 
-Loops around to the matching FOR unless the limit was reached. The variable name must be the same as in the matching FOR, otherwise weird things will happen. 
+Loops around to the matching C<FOR> unless the limit was reached. The variable name must be the same as in the matching C<FOR>, otherwise weird things will happen. 
 
 =item GOSUB expression
 
@@ -108,7 +108,7 @@ Jumps to the subroutine given by expression (any decimals are truncated).
 
 =item RETURN
 
-Returns from a subroutine, to right after the matching GOSUB statement.
+Returns from a subroutine, to right after the matching C<GOSUB> statement.
 
 =item DO
 
@@ -116,7 +116,7 @@ Introduces a conditional loop.
 
 =item LOOP (WHILE | UNTIL) expression
 
-Loops around to the matching DO, depending on whether the condition is met.
+Loops around to the matching C<DO>, depending on whether the condition is met.
 
 =item REM text
 
@@ -126,7 +126,7 @@ Introduces a comment. Any text that follows is ignored, to the end of the line.
 
 Defines a function with given name and arguments. Functions so defined can be called just like built-ins. Trying to redefine a function during the same run of the program is an error.
 
-DEF FN is absent in some implementations.
+C<DEF FN> is absent in some implementations.
 
 =item RANDOMIZE expression?
 
@@ -136,7 +136,7 @@ Some implementations do this automatically when B<basic> starts, but not all.
 
 =item STOP
 
-Interrupts the running of a program, and puts B<basic> in interactive mode. Useless if already in that state.
+Interrupts the running of a program, and puts B<basic> in interactive mode. Does nothing if already in that state.
 
 =item END
 
@@ -239,8 +239,8 @@ Some implementations are weird about the minimum number of decimals they display
 
 =head1 AUTHORS
 
-Written by Felix Pleşoianu L<http://felix.plesoianu.ro/>.
+Tinycat Basic is written by L<Felix Pleşoianu|https://felix.plesoianu.ro/>.
 
 =head1 LICENSE
 
-This software is open source under the MIT License. Use at your own risk.
+This software is free and open source software under the Artistic License 2.0. Use at your own risk.
