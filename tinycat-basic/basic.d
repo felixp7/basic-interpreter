@@ -8,6 +8,7 @@ import core.time;
 import std.string;
 import std.algorithm;
 import std.stdio;
+import std.conv;
 import std.format;
 import std.math;
 import std.random;
@@ -18,6 +19,13 @@ long indexOf(const uint[] haystack, const uint needle) {
 		if (num == needle)
 			return i;
 	return -1;
+}
+
+/// Custom exception class for the interpreter's use.
+class BasicException: Exception {
+	this(string msg, string file = __FILE__, size_t line = __LINE__) {
+		super(msg, file, line);
+	}
 }
 
 /// State and operations needed to interpret a Basic program.
@@ -151,11 +159,11 @@ class Basic {
 		const int mark = cursor;
 		cursor++; // Skip the opening double quote.
 		if (cursor >= line.length)
-			throw new Exception("Unclosed string");
+			throw new BasicException("Unclosed string");
 		while (line[cursor] != '"') {
 			cursor++;
 			if (cursor >= line.length)
-				throw new Exception("Unclosed string");
+				throw new BasicException("Unclosed string");
 		}
 		cursor++; // Skip the closing double quote.
 		
@@ -235,7 +243,7 @@ class Basic {
 		if (matchKeyword)
 			dispatchStatement;
 		else
-			throw new Exception("Statement expected");
+			throw new BasicException("Statement expected");
 	}
 
 	/// Extension point: override in a subclass to add more statements.
@@ -276,19 +284,19 @@ class Basic {
 		else if (token == "end")
 			crtLine = addr.length;
 		else
-			throw new Exception(
+			throw new BasicException(
 				"Unknown statement: " ~ token);
 	}
 	
 	/// Parse and interpret a LET statement at the cursor position.
 	void parseLet() {
 		if (!matchVarname)
-			throw new Exception("Variable expected");
+			throw new BasicException("Variable expected");
 			
 		const string varName = token;
 		
 		if (!match("="))
-			throw new Exception("'=' expected");
+			throw new BasicException("'=' expected");
 
 		variables[varName] = parseExpression;
 	}
@@ -304,7 +312,7 @@ class Basic {
 				cursor = line.length;
 			}
 		} else {
-			throw new Exception("IF without THEN");
+			throw new BasicException("IF without THEN");
 		}
 	}
 	
@@ -315,7 +323,7 @@ class Basic {
 		if (dest > -1)
 			crtLine = cast(size_t) dest;
 		else
-			throw new Exception(
+			throw new BasicException(
 				format("Line not found: %d", ln));
 	}
 	
@@ -340,7 +348,7 @@ class Basic {
 		if (matchString) {
 			prompt = token;
 			if (!match(","))
-				throw new Exception("Comma expected");
+				throw new BasicException("Comma expected");
 		} else {
 			prompt = "";
 		}
@@ -376,6 +384,10 @@ class Basic {
 				error.write("Can't parse number: " ~ data[i]);
 				error.writeln(" Maybe you forgot a comma?");
 				variables[v] = 0.0;
+			} catch (ConvException e) {
+				error.write("Can't parse number: " ~ data[i]);
+				error.writeln(" Maybe you forgot a comma?");
+				variables[v] = 0.0;
 			}
 		}
 	}
@@ -383,17 +395,17 @@ class Basic {
 	/// Parse and interpret a FOR statement at the cursor position.
 	void parseFor() {
 		if (!matchVarname)
-			throw new Exception("Variable expected");
+			throw new BasicException("Variable expected");
 		
 		const string varName = token;
 		
 		if (!match("="))
-			throw new Exception("'=' expected");
+			throw new BasicException("'=' expected");
 
 		variables[varName] = parseArithmetic;
 		
 		if (!matchNoCase("to"))
-			throw new Exception("'to' expected");
+			throw new BasicException("'to' expected");
 
 		const double limit = parseArithmetic;
 		
@@ -401,7 +413,7 @@ class Basic {
 		if (matchNoCase("step")) {
 			step = parseArithmetic;
 			if (step == 0)
-				throw new Exception("Infinite loop");
+				throw new BasicException("Infinite loop");
 		} else {
 			step = 1;
 		}
@@ -414,15 +426,15 @@ class Basic {
 	/// Parse and interpret a NEXT statement at the cursor position.
 	void parseNext() {
 		if (dstack.length < 2)
-			throw new Exception("NEXT without FOR");
+			throw new BasicException("NEXT without FOR");
 		
 		if (!matchVarname)
-			throw new Exception("Variable expected");
+			throw new BasicException("Variable expected");
 
 		const string varName = token;
 
 		if (varName !in variables)
-			throw new Exception(
+			throw new BasicException(
 				"Variable not found: " ~ varName);
 		
 		variables[varName] += dstack[$ - 1];
@@ -432,7 +444,7 @@ class Basic {
 		else if (dstack[$ - 1] < 0)
 			done = variables[varName] < dstack[$ - 2];
 		else
-			throw new Exception("Infinite loop");
+			throw new BasicException("Infinite loop");
 		
 		if (done) {
 			dstack.length--;
@@ -451,7 +463,7 @@ class Basic {
 			rstack ~= crtLine;
 			crtLine = cast(size_t) dest;
 		} else {
-			throw new Exception(
+			throw new BasicException(
 				format("Line not found: %d", ln));
 		}
 	}
@@ -462,14 +474,14 @@ class Basic {
 			crtLine = rstack[$ - 1];
 			rstack.length--;
 		} else {
-			throw new Exception("RETURN without GOSUB");
+			throw new BasicException("RETURN without GOSUB");
 		}
 	}
 	
 	/// Parse and interpret a LOOP statement at the cursor position.
 	void parseLoop() {
 		if (rstack.length == 0) {
-			throw new Exception("LOOP without DO");
+			throw new BasicException("LOOP without DO");
 		} else if (matchNoCase("while")) {
 			if (parseExpression != 0)
 				crtLine = rstack[$ - 1];
@@ -481,24 +493,24 @@ class Basic {
 			else
 				rstack.length--;
 		} else {
-			throw new Exception("Condition expected");
+			throw new BasicException("Condition expected");
 		}
 	}
 	
 	/// Parse and interpret a DEF FN statement at the cursor position.
 	void parseDef() {
 		if (!matchNoCase("fn"))
-			throw new Exception("Missing 'fn'");
+			throw new BasicException("Missing 'fn'");
 		if (!matchVarname)
-			throw new Exception("Function name expected");
+			throw new BasicException("Function name expected");
 
 		const string name = token;
 
 		if (name in functionArgs)
-			throw new Exception(
+			throw new BasicException(
 				"Duplicate function: " ~ name);
 		if (!match("("))
-			throw new Exception("Missing '('");
+			throw new BasicException("Missing '('");
 		
 		string[] args;
 		if (match(")")) {
@@ -506,11 +518,11 @@ class Basic {
 		} else {
 			args = parseVarlist;
 			if (!match(")"))
-				throw new Exception("Missing ')'");
+				throw new BasicException("Missing ')'");
 		}
 		
 		if (!match("="))
-			throw new Exception("Missing '='");
+			throw new BasicException("Missing '='");
 		
 		functionArgs[name] = args;
 		functionCode[name] = line[cursor .. $].strip;
@@ -519,12 +531,12 @@ class Basic {
 
 	string[] parseVarlist() {
 		if (!matchVarname)
-			throw new Exception("Variable expected");
+			throw new BasicException("Variable expected");
 		string[] varlist;
 		varlist ~= token;
 		while (match(",")) {
 			if (!matchVarname)
-				throw new Exception("Variable expected");
+				throw new BasicException("Variable expected");
 			varlist ~= token;
 		}
 		return varlist;
@@ -595,7 +607,7 @@ class Basic {
 			else if (op == ">=")
 				return (lside >= rside) ? -1 : 0;
 			else
-				throw new Exception(
+				throw new BasicException(
 					"Unknown operator: " ~ op);
 		}
 	}
@@ -611,7 +623,7 @@ class Basic {
 			else if (op == "-")
 				t1 -= t2;
 			else
-				throw new Exception(
+				throw new BasicException(
 					"Unknown operator: " ~ op);
 		}
 		return t1;
@@ -630,7 +642,7 @@ class Basic {
 			else if (op == "\\")
 				t1 = floor(t1 / t2);
 			else
-				throw new Exception(
+				throw new BasicException(
 					"Unknown operator: " ~ op);
 		}
 		return t1;
@@ -667,17 +679,17 @@ class Basic {
 			} else if (name in variables) {
 				return variables[name] * signum;
 			} else {
-				throw new Exception(
-					format("Var not found: %s.", name));
+				throw new BasicException(
+					format("Var not found: %s", name));
 			}
 		} else if (match("(")) {
 			const double value = parseExpression;
 			if (match(")"))
 				return value * signum;
 			else
-				throw new Exception("Missing ')'");
+				throw new BasicException("Missing ')'");
 		} else {
-			throw new Exception("Expression expected");
+			throw new BasicException("Expression expected");
 		}
 	}
 	
@@ -693,7 +705,7 @@ class Basic {
 			if (match(")"))
 				return args;
 			else
-				throw new Exception("Missing ')'");
+				throw new BasicException("Missing ')'");
 		} else {
 			return args;
 		}
@@ -703,7 +715,7 @@ class Basic {
 	double callFn(const string name, const double[] args) {
 		assert(name in functionArgs);
 		if (args.length != functionArgs[name].length)
-			throw new Exception("Bad argument count");
+			throw new BasicException("Bad argument count");
 		else if (name in functionCode)
 			return callUserFn(name, args);
 		else
@@ -778,7 +790,7 @@ class Basic {
 			return args[0] != 0 ? args[1] : args[2];
 		else
 			// Should never happen, but just in case
-			throw new Exception(
+			throw new BasicException(
 				"Unknown function: " ~ name);
 	}
 
@@ -818,9 +830,9 @@ class Basic {
 				cursor = 0;
 				parseStatement;
 			}
-		} catch (Exception e) {
-			error.writefln("%s in line %d column %d",
-				e, lineNum, cursor);
+		} catch (BasicException e) {
+			error.writefln("%s in line %d column %d.",
+				e.message, lineNum, cursor);
 		}
 	}
 	
@@ -915,9 +927,9 @@ class Basic {
 			} else {
 				try {
 					dispatchStatement;
-				} catch (Exception e) {
-					error.writefln("%s in column %d",
-						e, cursor);
+				} catch (BasicException e) {
+					error.writefln("%s in column %d.",
+						e.message, cursor);
 				}
 			}
 		}
